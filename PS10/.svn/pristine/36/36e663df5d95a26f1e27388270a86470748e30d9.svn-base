@@ -1,0 +1,192 @@
+﻿using CustomNetworking;
+using MySql.Data.MySqlClient;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace WebServer
+{
+    class WebServer
+    {
+        /// <summary>
+        /// Listens for incoming connections.
+        /// </summary>
+        private TcpListener server;
+        
+        /// <summary>
+        /// beggining of string sent to web page
+        /// </summary>
+        private String sendString = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
+        
+        /// <summary>
+        /// string used to connect to database
+        /// </summary>
+        private const string connectionString = "server=atr.eng.utah.edu;database=cs3500_down;uid=cs3500_down;password=085389825";
+
+        static void Main(string[] args)
+        {
+            new WebServer();
+            Console.Read();
+        }
+
+         /// <summary>
+        /// Constructs a new web server.
+        /// </summary>
+       
+        public WebServer()
+        {
+  
+
+            // Start the server, and listen for incoming connections.
+            server = new TcpListener(IPAddress.Any, 2500);
+            server.Start();
+            server.BeginAcceptSocket(ConnectionReceived, null);
+        }
+
+        /// <summary>
+        /// This callback method is called when a connection has been received.
+        /// </summary>
+        private void ConnectionReceived(IAsyncResult ar)
+        {
+            Socket socket = server.EndAcceptSocket(ar);
+            StringSocket ss = new StringSocket(socket, UTF8Encoding.Default);
+            
+            // Set the StringSocket to listen for a name from the client.
+            ss.BeginReceive(GetReceived, ss);
+            
+            // Set the server to listen for another connection.
+            server.BeginAcceptSocket(ConnectionReceived, null);
+        }
+
+        private void GetReceived(string s, Exception e, object payload)
+        {
+            StringSocket ss = (StringSocket)payload;
+         
+
+            //check for errors / lost connection
+            if(payload == null)
+            {
+                return;
+            }
+            if(e != null)
+            {
+                return;
+            }
+            if( s.StartsWith("GET /players HTTP/1.1") )
+            {
+                sendString += GetPlayersPage();
+                ss.BeginSend(sendString, (ee, oo) => { }, ss);
+            }
+            else if (s.StartsWith( "GET /games?player="))
+            {
+
+            }
+            else if (s.StartsWith("GET /game?id="))
+            {
+                s = s.Substring(13);
+                s = s.Substring(0,s.IndexOf(" "));
+                int id = 0;
+                if(int.TryParse(s, out id))
+                {
+                    sendString += GetGameInfo(id);
+                    ss.BeginSend(sendString, (ee, oo) => { }, ss);
+                    
+                }
+                else
+                {
+                    //error page
+                }
+            }
+            else
+            {
+
+            }
+
+            ss.Close();
+          
+           
+        }
+
+        private string GetPlayersPage()
+        {
+            String html = "<html><h1>";
+            // Connect to the DB
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                try
+                {
+                    // Open a connection
+                    conn.Open();
+
+                    // Create a command
+                    MySqlCommand command = conn.CreateCommand();
+                    command.CommandText = "SELECT * FROM cs3500_down.Game WHERE gID=";
+
+                    // Execute the command and cycle through the DataReader object
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            if (reader[0] != DBNull.Value)
+                            {
+
+                                return html + reader["pID1"] + "</h1></html>";
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+
+                return "";
+            }
+        }
+
+        private string GetGameInfo(int gID)
+        {
+            String html = "<html><h1>";
+            // Connect to the DB
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                try
+                {
+                    // Open a connection
+                    conn.Open();
+
+                    // Create a command
+                    MySqlCommand command = conn.CreateCommand();
+                    command.CommandText = "SELECT * FROM cs3500_down.Game WHERE gID=" + gID;
+
+                    // Execute the command and cycle through the DataReader object
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            if (reader[0] != DBNull.Value)
+                            {
+                                
+                                return html+reader["pID1"] + "</h1></html>";
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+
+                return "";
+            }
+        }
+
+
+
+
+    }
+}

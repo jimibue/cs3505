@@ -1,0 +1,5 @@
+C:\Users\yeates\Visual Studio 2013\Projects\Sockets\Public\Lecture_Examples\L17_Simple_Chat_Server\SimpleChatServer\bin\Debug\SimpleChatServer.exe
+C:\Users\yeates\Visual Studio 2013\Projects\Sockets\Public\Lecture_Examples\L17_Simple_Chat_Server\SimpleChatServer\bin\Debug\SimpleChatServer.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\Sockets\Public\Lecture_Examples\L17_Simple_Chat_Server\SimpleChatServer\obj\Debug\SimpleChatServer.csprojResolveAssemblyReference.cache
+C:\Users\yeates\Visual Studio 2013\Projects\Sockets\Public\Lecture_Examples\L17_Simple_Chat_Server\SimpleChatServer\obj\Debug\SimpleChatServer.exe
+C:\Users\yeates\Visual Studio 2013\Projects\Sockets\Public\Lecture_Examples\L17_Simple_Chat_Server\SimpleChatServer\obj\Debug\SimpleChatServer.pdb

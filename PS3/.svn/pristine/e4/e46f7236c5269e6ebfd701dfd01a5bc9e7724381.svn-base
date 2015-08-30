@@ -1,0 +1,319 @@
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SpreadsheetUtilities;
+
+namespace FormulaTester
+{
+    //---------------------------------------Basic Tests--------------------------------------------->
+    [TestClass]
+    public class UnitTest1
+    {
+        /// <summary>
+        /// This test see's if constructor works with legal vairables
+        /// </summary>
+        [TestMethod]
+        public void BasicConstructorTest1()
+        {
+            Formula f = new Formula("X + Y");
+            Formula f1 = new Formula("Xy + Y1");
+            Formula g = new Formula("X1a_ZzA - YAaZZ12_23A09");
+            Formula h = new Formula("_12zxj * _1_A");
+            Formula l = new Formula("X / Y");
+            Formula j = new Formula("5.00000123 / 5.1");
+            Formula k = new Formula("5e5 / 5.1");
+       }
+        /// <summary>
+        /// test a large number
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicConstructorTest2()
+        {
+            
+            Formula f = new Formula("5e310");
+       
+        }
+        /// <summary>
+        /// Test empty formulas
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicConstructorTest3()
+        {
+
+            Formula f = new Formula("");
+        }
+        /// <summary>
+        /// Test illegal first expresion
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicConstructorTest4()
+        {
+
+            Formula f = new Formula("+ 5 -2");
+        }
+        /// <summary>
+        /// Test illegal last expresion
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicConstructorTest5()
+        {
+
+            Formula f = new Formula("5 -2 +");
+        }
+        /// <summary>
+        /// Test illegal expresion
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicConstructorTest6()
+        {
+
+            Formula f = new Formula("((5+2)");
+        }
+
+        /// <summary>
+        /// Test illegal expresion
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicConstructorTest7()
+        {
+
+            Formula f = new Formula("(5+2))");
+        }
+        /// <summary>
+        /// Test illegal expresion
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicConstructorTest8()
+        {
+
+            Formula f = new Formula("(34 + -3)");
+        }
+        /// <summary>
+        /// Test illegal expresion
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicConstructorTest10()
+        {
+
+            Formula f = new Formula("()2 +3");
+        }
+        /// <summary>
+        /// Test illegal expresion
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicConstructorTest11()
+        {
+
+            Formula f = new Formula("3 -2(+3)");
+        }
+        /// <summary>
+        /// Test illegal expresion
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicConstructorTest9()
+        {
+
+            Formula f = new Formula("()34 +3)");
+        }
+        /// <summary>
+        /// Test basic legal expresions
+        /// </summary>
+        [TestMethod]
+        
+        public void BasicConstructorTest12()
+        {
+
+            Formula f = new Formula("(34 +3)");
+            Formula g = new Formula("3*(34 +3)");
+            Formula h = new Formula("3*(34 +3)/2");
+            Formula i = new Formula("(1-3) + 3*(34 +3)/2");
+        }
+        /// <summary>
+        /// Test building many formulas
+        /// </summary>
+        [TestMethod]
+        public void BasicStressTest1()
+        {
+            for (int i = 0; i < 10000; i++)
+            {
+
+                Formula f = new Formula("(34 +3)");
+                Formula g = new Formula("3*(34 +3)");
+                Formula h = new Formula("3*(34 +3)/2");
+                Formula j = new Formula("(1-3) + 3*(34 +3)/2");
+            }
+        }
+        /// <summary>
+        /// 
+        /// 5.a is illegal expresion
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void ConstructorErrorTest2()
+        {
+            //regrex is not  seeing 5.a as one token instead it splits it up
+            //when it hits a char (a) sees this as 2 + 5. a
+            Formula g = new Formula("2+ 5.a");
+        }
+        /// <summary>
+        /// should fail 2x is illegal
+        /// 
+        /// </summary>
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+
+        public void ConstructorErrorTest3()
+        {
+            //regrex is not  seeing 2x as one token instead it splits it up
+            //to "2 x"
+          
+            Formula g = new Formula("2+ 2X");
+        }
+        /// <summary>
+        /// This test tests the ToString method
+        /// 
+        /// </summary>
+
+        [TestMethod]
+      
+        public void BasicToStringTest1()
+        {
+            string s = "x+y";
+            string s1 = "X+Y";
+      
+            Formula i = new Formula(s);
+            Formula f = new Formula(s, Capitalize, ReturnTrue);
+            Formula h = new Formula(s, t => t.ToUpper(), t => true);
+            Assert.AreEqual(s1, f.ToString());
+            Assert.AreEqual(s1, h.ToString());
+            Assert.AreEqual(s, i.ToString());
+        }
+
+        /// <summary>
+        /// Basic test to test .Equals()
+        /// 
+        /// </summary>
+
+        [TestMethod]
+
+        public void BasicEqualsTest1()
+        {
+            string s = "x+y";
+            string t = "x+y";
+            Formula nullFormula = null;
+            Formula xplusy = new Formula(s);
+            Formula XplusY = new Formula(s, x=>x.ToUpper(), x=>true);
+            Formula xplusy1 = new Formula(t);
+            Formula XplusY1 = new Formula(t, x => x.ToUpper(), x => true);
+           
+            
+            Assert.IsFalse(xplusy.Equals(XplusY));
+            Assert.IsFalse(xplusy.Equals(nullFormula));
+
+            Assert.IsTrue(xplusy.Equals(xplusy));
+
+            Assert.IsTrue(xplusy.Equals(xplusy1));
+            Assert.IsTrue(XplusY.Equals(XplusY1));
+      
+        }
+
+
+        /// <summary>
+        /// Basic test to test ==
+        /// 
+        /// </summary>
+
+        [TestMethod]
+
+        public void BasicEqualsEqualsTest1()
+        {
+            string s = "x+y";
+            string t = "x+y";
+            Formula nullFormula = null;
+            Formula nullFormula1 = null;
+            Formula xplusy = new Formula(s);
+            Formula XplusY = new Formula(s, x => x.ToUpper(), x => true);
+            Formula xplusy1 = new Formula(t);
+            Formula XplusY1 = new Formula(t, x => x.ToUpper(), x => true);
+
+
+            Assert.IsFalse(xplusy == XplusY );
+            Assert.IsFalse(xplusy == nullFormula);
+
+            Assert.IsTrue(xplusy == xplusy);
+            Assert.IsTrue(nullFormula == nullFormula1);
+
+            Assert.IsTrue(xplusy == xplusy1 );
+            Assert.IsTrue(XplusY == XplusY1 );
+
+        }
+        /// <summary>
+        /// Basic test to test !=
+        /// 
+        /// </summary>
+
+        [TestMethod]
+
+        public void BasicNotEqualsTest1()
+        {
+            string s = "x+y";
+            string t = "x+y";
+            Formula nullFormula = null;
+            Formula nullFormula1 = null;
+            Formula xplusy = new Formula(s);
+            Formula XplusY = new Formula(s, x => x.ToUpper(), x => true);
+            Formula xplusy1 = new Formula(t);
+            Formula XplusY1 = new Formula(t, x => x.ToUpper(), x => true);
+
+
+            Assert.IsTrue(xplusy != XplusY);
+            Assert.IsTrue(xplusy != nullFormula);
+
+            Assert.IsFalse(xplusy != xplusy);
+
+            Assert.IsFalse(nullFormula != nullFormula1);
+
+            Assert.IsFalse(xplusy != xplusy1);
+            Assert.IsFalse(XplusY != XplusY1);
+
+        }
+
+
+    
+
+       
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        public string Capitalize(string s)
+        {
+            return s.ToUpper();
+        }
+        public bool ReturnTrue(string s)
+        {
+            return true;
+        }
+    }
+}

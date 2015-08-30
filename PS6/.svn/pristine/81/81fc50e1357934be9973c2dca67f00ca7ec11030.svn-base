@@ -1,0 +1,835 @@
+﻿// Written by James Yeates for CS 3500, September 2014
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SpreadsheetUtilities;
+using System.Xml;
+using SS;
+
+// Version 1.1 10/21/2014 - Passing all grading test
+   //-fixed constructor to set default version information to "default"
+   //-fixed lookup method to simply return the value and not to try to parse
+   // the value as a string as this caused inaccurate results and slowed down program 
+    
+namespace SS
+{
+    /// <summary>
+    /// An AbstractSpreadsheet object represents the state of a simple spreadsheet.  A 
+    /// spreadsheet consists of an infinite number of named cells.
+    /// 
+    /// A string is a valid cell name if and only if:
+    ///   (1) its first character is an underscore or a letter
+    ///   (2) its remaining characters (if any) are underscores and/or letters and/or digits
+    /// Note that this is the same as the definition of valid variable from the PS3 Formula class.
+    /// 
+    /// For example, "x", "_", "x2", "y_15", and "___" are all valid cell  names, but
+    /// "25", "2x", and "&" are not.  Cell names are case sensitive, so "x" and "X" are
+    /// different cell names.
+    /// 
+    /// A spreadsheet contains a cell corresponding to every possible cell name.  (This
+    /// means that a spreadsheet contains an infinite number of cells.)  In addition to 
+    /// a name, each cell has a contents and a value.  The distinction is important.
+    /// 
+    /// The contents of a cell can be (1) a string, (2) a double, or (3) a Formula.  If the
+    /// contents is an empty string, we say that the cell is empty.  (By analogy, the contents
+    /// of a cell in Excel is what is displayed on the editing line when the cell is selected.)
+    /// 
+    /// In a new spreadsheet, the contents of every cell is the empty string.
+    ///  
+    /// The value of a cell can be (1) a string, (2) a double, or (3) a FormulaError.  
+    /// (By analogy, the value of an Excel cell is what is displayed in that cell's position
+    /// in the grid.)
+    /// 
+    /// If a cell's contents is a string, its value is that string.
+    /// 
+    /// If a cell's contents is a double, its value is that double.
+    /// 
+    /// If a cell's contents is a Formula, its value is either a double or a FormulaError,
+    /// as reported by the Evaluate method of the Formula class.  The value of a Formula,
+    /// of course, can depend on the values of variables.  The value of a variable is the 
+    /// value of the spreadsheet cell it names (if that cell's value is a double) or 
+    /// is undefined (otherwise).
+    /// 
+    /// Spreadsheets are never allowed to contain a combination of Formulas that establish
+    /// a circular dependency.  A circular dependency exists when a cell depends on itself.
+    /// For example, suppose that A1 contains B1*2, B1 contains C1*2, and C1 contains A1*2.
+    /// A1 depends on B1, which depends on C1, which depends on A1.  That's a circular
+    /// dependency.
+    /// </summary>
+    public class Spreadsheet : AbstractSpreadsheet
+    {
+        /// <summary>
+        /// this keeps track of which items are dependent and dependee organizing the internall
+        /// structure of the spreedsheet
+        /// </summary>
+        private DependencyGraph depenGraph;
+        ///<sumary>
+        ///this dictonary keeps track of cells name and the content in those cells
+        ///Object is used for the cells because the type could be string, double, or Formula
+        ///  </sumary>
+        private IDictionary<string, SSCell> nameContentDict;
+        
+        /// <summary>
+        /// True if this spreadsheet has been modified since it was created or saved                  
+        /// (whichever happened most recently); false otherwise.
+        /// </summary>
+        public override bool Changed { get; protected set; }
+
+        /// <summary>
+        ///Default constructor. Set valid to true and s to s
+        /// </summary>
+
+        public Spreadsheet()
+            : this(s => true, s => s, "default")
+        {
+
+        }
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="isValid">determines if cell name is valid</param>
+        /// <param name="normalize">Normailizes a string</param>
+        /// <param name="version">Information about the version</param>
+        public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version)
+            : base(isValid, normalize, version)
+        {
+            Changed = false;
+            depenGraph = new DependencyGraph();
+            nameContentDict = new Dictionary<string, SSCell>();
+        }
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="isValid">determines if cell name is valid</param>
+        /// <param name="normalize">Normailizes a string</param>
+        /// <param name="version">Information about the version</param>
+        /// /// <param name="pathToFile">the path to the file</param>
+        public Spreadsheet(string pathToFile, Func<string, bool> isValid, Func<string, string> normalize, string version)
+            : base(isValid, normalize, version)
+        {
+            Changed = false;
+            depenGraph = new DependencyGraph();
+            nameContentDict = new Dictionary<string, SSCell>();
+            //read (create) the spreadsheet
+            Version = ReadFile(pathToFile, false);
+        }
+
+        // ADDED FOR PS5
+        /// <summary>
+        /// Returns the version information of the spreadsheet saved in the named file.
+        /// If there are any problems opening, reading, or closing the file, the method
+        /// should throw a SpreadsheetReadWriteException with an explanatory message.
+        /// </summary>
+        public override string GetSavedVersion(String filename)
+        {
+            return ReadFile(filename, true);
+          
+        }
+    
+        
+
+
+        // ADDED FOR PS5
+        /// <summary>
+        /// Writes the contents of this spreadsheet to the named file using an XML format.
+        /// The XML elements should be structured as follows:
+        /// 
+        /// <spreadsheet version="version information goes here">
+        /// 
+        /// <cell>
+        /// <name>
+        /// cell name goes here
+        /// </name>
+        /// <contents>
+        /// cell contents goes here
+        /// </contents>    
+        /// </cell>
+        /// 
+        /// </spreadsheet>
+        /// 
+        /// There should be one cell element for each non-empty cell in the spreadsheet.  
+        /// If the cell contains a string, it should be written as the contents.  
+        /// If the cell contains a double d, d.ToString() should be written as the contents.  
+        /// If the cell contains a Formula f, f.ToString() with "=" prepended should be written as the contents.
+        /// 
+        /// If there are any problems opening, writing, or closing the file, the method should throw a
+        /// SpreadsheetReadWriteException with an explanatory message.
+        /// </summary>
+        public override void Save(String filename)
+        {
+            try
+            {
+                //using statement ensures correct use of IDispoasbale object
+
+                using (XmlWriter writer = XmlWriter.Create(filename))
+                {
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("spreadsheet");
+                    writer.WriteAttributeString("version", this.Version);
+
+                    //loop through all cells in this spreadsheet
+                    foreach (string str in nameContentDict.Keys)
+                    {
+                        writer.WriteStartElement("cell");
+                        writer.WriteElementString("name", nameContentDict[str].Name);
+                        writer.WriteElementString("contents", nameContentDict[str].ContentAsString());
+                        writer.WriteEndElement();//end of cell
+                    }
+
+                    writer.WriteEndElement();//end spreadsheet
+                    writer.WriteEndDocument();
+                }
+                //file was succefully changed
+                Changed = false;
+            }
+            catch (System.IO.DirectoryNotFoundException)
+            {
+                throw new SpreadsheetReadWriteException("Invalid Path: Directory not found");
+            }
+            // catch any unexpected errors that might have occured
+            catch (Exception e)
+            {
+                throw new SpreadsheetReadWriteException("unexpected error occured " + e.ToString());
+            }
+
+
+        }
+
+        // ADDED FOR PS5
+        /// <summary>
+        /// If name is null or invalid, throws an InvalidNameException.
+        /// 
+        /// Otherwise, returns the value (as opposed to the contents) of the named cell.  The return
+        /// value should be either a string, a double, or a SpreadsheetUtilities.FormulaError.
+        /// </summary>
+        public override object GetCellValue(String name)
+        {
+            //check if name is valid and normalize the name
+            name = IsValidName(name);
+
+            //if cell is not the spreadsheet value is an empty string
+            if (!nameContentDict.ContainsKey(name))
+                return "";
+
+            //get the cell this name is referring to 
+            return nameContentDict[name].Value;
+        }
+
+        /// <summary>
+        /// return all the names of non empty cells as a Enumerable
+        /// if the spreadsheet has no name an empty Enumerable will
+        /// be returned
+        /// </summary>
+        /// <returns></returns>
+
+        public override IEnumerable<string> GetNamesOfAllNonemptyCells()
+        {
+            //name ContentDict contains all non empty cells
+            //since null item can't be add to this set.
+            return new HashSet<string>(nameContentDict.Keys);
+        }
+
+        // ADDED FOR PS5
+        /// <summary>
+        /// If content is null, throws an ArgumentNullException.
+        /// 
+        /// Otherwise, if name is null or invalid, throws an InvalidNameException.
+        /// 
+        /// Otherwise, if content parses as a double, the contents of the named
+        /// cell becomes that double.
+        /// 
+        /// Otherwise, if content begins with the character '=', an attempt is made
+        /// to parse the remainder of content into a Formula f using the Formula
+        /// constructor.  There are then three possibilities:
+        /// 
+        ///   (1) If the remainder of content cannot be parsed into a Formula, a 
+        ///       SpreadsheetUtilities.FormulaFormatException is thrown.
+        ///       
+        ///   (2) Otherwise, if changing the contents of the named cell to be f
+        ///       would cause a circular dependency, a CircularException is thrown.
+        ///       
+        ///   (3) Otherwise, the contents of the named cell becomes f.
+        /// 
+        /// Otherwise, the contents of the named cell becomes content.
+        /// 
+        /// If an exception is not thrown, the method returns a set consisting of
+        /// name plus the names of all other cells whose value depends, directly
+        /// or indirectly, on the named cell.
+        /// 
+        /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+        /// set {A1, B1, C1} is returned.
+        /// </summary>
+        public override ISet<String> SetContentsOfCell(String name, String content)
+        {
+            //spreadsheet has been changed
+            Changed = true;
+            
+            //check input and Normalize name
+            string normalizedName = IsValidInput(name, content);
+
+            if (content.Equals(""))
+            {
+                //if an empty string is recieved the graph must be updated
+                if (nameContentDict.ContainsKey(name))
+                {
+                    //any cell that dependends on this is know a formula error
+                    
+                    foreach(string cell in GetAllDepdendents(name))
+                    {
+                        nameContentDict[cell].Value = new FormulaError();
+                    }
+                    depenGraph.RemoveDependency(name, content);
+                    nameContentDict.Remove(name);
+                }
+                
+                return new HashSet<string>();
+            }
+
+            //see if content is a double, if so get value return
+            double d;
+            if (double.TryParse(content, out d))
+            {
+                //add to dependen graph and name, cell to the Dcitonary, return dependents
+                return SetCellContents(normalizedName, d);
+            }
+            //if is it a formula
+            else if (content[0] == '=')
+            {
+                //get the rest of the string after the "="//double check off by one error here
+                string formulaString = content.Substring(1, content.Length - 1);
+                Formula formula;
+                try
+                {
+                    formula = new Formula(formulaString, Normalize, IsValid);
+                    //PS3 has different requirments for variables so check new standards here
+                    foreach( string str in formula.GetVariables())
+                        IsValidName(str);
+                    //add to dependen graph and name, cell to the Dcitonary, return dependents
+                    return SetCellContents(normalizedName, formula);
+                }
+                //catch the invalid name exception
+                catch (InvalidNameException) { throw new FormulaFormatException("bad formula"); }
+            
+            }
+            else
+                //it is a string, add to dependen graph and name, cell to the Dcitonary, return dependents
+                return SetCellContents(normalizedName, content);
+        }
+
+        /// <summary>
+        /// If name is null or invalid, throws an InvalidNameException.
+        /// 
+        /// Otherwise, returns the contents (as opposed to the value) of the named cell.  The return
+        /// value should be either a string, a double, or a Formula.
+        /// </summary>
+
+        public override object GetCellContents(string name)
+        {
+            //check if name is valid (will throw InvalidArgumentExpecption if not valid)
+            name = IsValidName(name);
+            //does name have a value return a empty string
+            if (nameContentDict.ContainsKey(name))
+                return nameContentDict[name].Content;
+            return "";
+        }
+
+        /// <summary>
+        /// If name is null or invalid, throws an InvalidNameException.
+        /// 
+        /// Otherwise, the contents of the named cell becomes number.  The method returns a
+        /// set consisting of name plus the names of all other cells whose value depends, 
+        /// directly or indirectly, on the named cell.
+        /// 
+        /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+        /// set {A1, B1, C1} is returned.
+        /// </summary>
+
+        protected override ISet<string> SetCellContents(string name, double number)
+        {
+            //check if name is valid (will throw InvalidArgumentExpecption if not valid)
+            IsValidName(name);
+
+            //Properly Add to dependGraph and to nameContentsDict
+            AddToGraphAndDict(name, number);
+
+            nameContentDict[name].Value = number;
+
+            HashSet<string> returnSet = new HashSet<string>(GetCellsToRecalculate(name));
+            foreach (string cellName in returnSet)
+            {
+                nameContentDict[cellName].ReEvaluate(Lookup);
+            }
+            
+            //get all dependents + add the name
+            return returnSet;
+        }
+
+        /// <summary>
+        ///  If text is null, throws an ArgumentNullException.
+        /// 
+        /// Otherwise, if name is null or invalid, throws an InvalidNameException.
+        /// 
+        /// Otherwise, the contents of the named cell becomes text.  The method returns a
+        /// set consisting of name plus the names of all other cells whose value depends, 
+        /// directly or indirectly, on the named cell.
+        /// 
+        /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+        /// set {A1, B1, C1} is returned.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="text"></param>
+        /// <returns></returns>
+
+        protected override ISet<string> SetCellContents(string name, string text)
+        {
+            //check if name is valid (will throw InvalidArgumentExpecption if not valid)
+            IsValidInput(name, text);
+
+            //Add to dependGraph and to nameContentsDict
+            AddToGraphAndDict(name, text);
+
+            nameContentDict[name].Value = text;
+
+            HashSet<string> returnSet = new HashSet<string>(GetCellsToRecalculate(name));
+            foreach (string cellName in returnSet)
+            {
+                nameContentDict[cellName].ReEvaluate(Lookup);
+            }
+
+            //return the dependents of 'name' after adding "name"
+            //get all dependents + add the name
+            return returnSet;
+        }
+
+        /// <summary>
+        /// If the formula parameter is null, throws an ArgumentNullException.
+        /// 
+        /// Otherwise, if name is null or invalid, throws an InvalidNameException.
+        /// 
+        /// Otherwise, if changing the contents of the named cell to be the formula would cause a 
+        /// circular dependency, throws a CircularException.  (No change is made to the spreadsheet.)
+        /// 
+        /// Otherwise, the contents of the named cell becomes formula.  The method returns a
+        /// Set consisting of name plus the names of all other cells whose value depends,
+        /// directly or indirectly, on the named cell.
+        /// 
+        /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+        /// set {A1, B1, C1} is returned.
+        /// </summary>
+        protected override ISet<string> SetCellContents(string name, Formula formula)
+        {
+            //check if name is valid
+            IsValidInput(name, formula);
+
+            //get any vairables from formula and add dependency
+            foreach (string var in formula.GetVariables())
+                depenGraph.AddDependency(var, name);
+
+            SSCell oldCell = null;
+            if (nameContentDict.TryGetValue(name, out oldCell))
+            { }
+
+            //check for circular dependiencies
+            try
+            {
+                //check for circular dependeinces
+                ISet<string> returnSet = GetAllDepdendents(name);
+                // if we get here no circular dependency was found
+                AddToGraphAndDict(name, formula);
+
+                //reevaluate all dependents
+                foreach (string cellName in returnSet)
+                {
+                    nameContentDict[cellName].ReEvaluate(Lookup);
+                }
+                return returnSet;
+            }
+            catch (CircularException)
+            {
+                //return dependency graph back to normal
+                foreach (string var in formula.GetVariables())
+                    depenGraph.RemoveDependency(var, name);
+                //SetContentsOfCell(name, oldCell.Content.ToString());
+                //this was added because I feel that something else should be done here down the road
+                throw new CircularException();
+            }
+
+            ////check if name is valid
+            //IsValidInput(name, formula);
+            
+            ////save old cell in case of circular exception
+            //SSCell oldCell = null;
+            //if (nameContentDict.TryGetValue(name, out oldCell))
+            //{}
+            ////get any vairables from formula and add dependency
+            //foreach (string var in formula.GetVariables())
+            //    depenGraph.AddDependency(var, name);
+            ////depenGraph.ReplaceDependees(name, formula.GetVariables());
+            ////check for circular dependiencies
+            //try
+            //{
+            //    //check for circular dependeinces
+            //    ISet<string> returnSet = GetAllDepdendents(name);
+            //    // if we get here no circular dependency was found
+            //    AddToGraphAndDict(name, formula);
+
+            //    //reevaluate all dependents
+            //    foreach (string cellName in returnSet)
+            //    {
+            //        nameContentDict[cellName].ReEvaluate(Lookup);
+            //    }
+            //    return returnSet;
+            //}
+            //catch (CircularException)
+            //{
+            //    foreach (string var in formula.GetVariables())
+            //        depenGraph.RemoveDependency(name, var);
+            //    //chaged here
+            //    if (oldCell.Content is Formula)
+            //    {
+            //        Formula f = (Formula)oldCell.Content;
+            //        foreach (string var in formula.GetVariables())
+            //        {
+            //            depenGraph.AddDependency(name, var);
+            //        }
+            //    }
+            //    else
+            //    {
+
+            //        nameContentDict.Remove(name);
+            //        nameContentDict.Add(name, oldCell);
+            //    }
+
+            //    //this was added because I feel that something else should be done here down the road
+            //    throw new CircularException();
+            //}
+
+
+        }
+        /// <summary>
+        /// If name is null, throws an ArgumentNullException.
+        /// 
+        /// Otherwise, if name isn't a valid cell name, throws an InvalidNameException.
+        /// 
+        /// Otherwise, returns an enumeration, without duplicates, of the names of all cells whose
+        /// values depend directly on the value of the named cell.  In other words, returns
+        /// an enumeration, without duplicates, of the names of all cells that contain
+        /// formulas containing name.
+        /// 
+        /// For example, suppose that
+        /// A1 contains 3
+        /// B1 contains the formula A1 * A1
+        /// C1 contains the formula B1 + A1
+        /// D1 contains the formula B1 - C1
+        /// The direct dependents of A1 are B1 and C1
+        /// </summary>
+
+        protected override IEnumerable<string> GetDirectDependents(string name)
+        {
+            //check if name is valid
+            IsValidName(name);
+
+            //my dependency graph is wrriten to get directdependents only (I think)
+            return new List<string>(depenGraph.GetDependents(name));
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////  Private Helper Methods ////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// This method in used in two different ways controled by the paramter onlyGetVersoin.  
+        /// First it is used to get the version information of a spreadsheet.  Secondly it is
+        /// used to read a file and create a new spreadsheet.
+        /// </summary>
+        /// <param name="filename">the path of the file</param>
+        /// <param name="onlyGetVersion">true if only want to get the version information and not 
+        /// read the file</param>
+        /// <returns>version information</returns>
+        private string ReadFile(string filename, bool onlyGetVersion)
+        {
+            //placeholers
+            string last = "";
+            string name = "";
+            string content = "";
+            string version = "";
+            //read the xml file
+            try
+            {
+                //create the reader
+                using (XmlReader reader = XmlReader.Create(filename))
+                {
+                    while (reader.Read())//loop while there is something to read
+                    {
+                        if (reader.IsStartElement())//dectects start element
+                        {
+                            switch (reader.Name)
+                            {
+                                case "spreadsheet":
+                                    //checks to make sure that this is onle called once
+                                    if ((!last.Equals("")))
+                                        throw new SpreadsheetReadWriteException("Invalid spreadsheet Format");
+                                    //no version information
+                                    if (!(reader.HasAttributes))
+                                        throw new SpreadsheetReadWriteException("No version information");
+                                    //GetSavedVersion was called just return version informtion
+                                    if (onlyGetVersion)
+                                        //return the version string
+                                        return reader.GetAttribute(0);
+
+                                    //read the version information
+                                    version = reader["version"];
+                                    
+                                    last = "contents";
+                                    break;
+
+                                case "cell":
+                                    //make sure xml file is in proper order (cell tags come after contents tags)
+                                    if ((!last.Equals("contents")))
+                                        throw new SpreadsheetReadWriteException("Invalid spreadsheet Format");
+                                    last = "cell";
+                                    break;
+                                case "name":
+                                    if ((!last.Equals("cell")))
+                                        throw new SpreadsheetReadWriteException("Invalid spreadsheet Format");
+                                    //move to next element and get the name value
+                                    reader.Read();
+                                    name = reader.Value.Trim();
+                                    last = "name";
+                                    break;
+                                case "contents":
+                                    if ((!last.Equals("name")))
+                                        throw new SpreadsheetReadWriteException("Invalid spreadsheet Format");
+                                    //move to next element and get the content value
+                                    reader.Read();
+                                    content = reader.Value.Trim();
+                                    this.SetContentsOfCell(name, content);
+                                    last = "contents";
+                                    break;
+                            }
+                        }
+                    }
+                    //make sure the version information equal each other
+                    if (!(this.Version.Equals(version)))
+                        throw new SpreadsheetReadWriteException("Version information does not match");
+                    return version;
+                }
+                
+            }
+            //potential exceptions 
+            catch (System.IO.DirectoryNotFoundException)
+            {
+                throw new SpreadsheetReadWriteException("Invalid Path: Directory not found");
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                throw new SpreadsheetReadWriteException("Invalid Path: File not found");
+            }
+            catch (System.Xml.XmlException)
+            {
+                throw new SpreadsheetReadWriteException("Invalid XML File: XML Exception");
+            }
+            catch (CircularException)
+            {
+                throw new SpreadsheetReadWriteException("Invalid XML File: contained circulary dependency");
+            }
+            catch (InvalidNameException)
+            {
+                throw new SpreadsheetReadWriteException("Invalid XML File: Invalid name found");
+            }
+            catch (FormulaFormatException)
+            {
+                throw new SpreadsheetReadWriteException("Invalid XML File: Invalid formula found");
+            }
+            // catch any unexpected errors that might have occured
+            catch (Exception e)
+            {
+               throw new SpreadsheetReadWriteException("unexpected error occured " + e.ToString());
+            }
+
+        }
+        /// <summary>
+        /// Gets all of the dependents of the cell plus the cell itself
+        /// </summary>
+        /// <param name="name">the name of the cell</param>
+        /// <returns>the dependents of the cell</returns>
+
+        private ISet<string> GetAllDepdendents(string name)
+        {
+            return new HashSet<string>(this.GetCellsToRecalculate(name));
+        }
+        /// <summary>
+        /// Creates and adds the cell and to the Dictionary using the cells name as its Key.  If the dictionary 
+        /// contains the name and the content of that cell is a Formula and is being replaced with a double or string
+        /// then depedencys need to be readjusted and are. 
+        /// </summary>
+        /// <param name="name">name if the cell</param>
+        /// <param name="obj">Contents of the cell</param>
+
+        private void AddToGraphAndDict(string name, Object obj)
+        {
+            //check to see if cell already exist, if its old content is a Formula and is being rplaced by something
+            //other than a formula than replace dependees.  
+            if (nameContentDict.ContainsKey(name))
+            {
+                // if the old content is a formula remove dependicies (replace with an empty hashset)
+                // unless the new content is also a formula then do not remove the dependences
+                if (nameContentDict[name].Content is Formula && !(obj is Formula))//if obj is formula keep depdendcies
+                {
+                    depenGraph.ReplaceDependees(name, new HashSet<string>());
+                }
+
+                nameContentDict.Remove(name);
+            }
+
+            SSCell textCell = new SSCell(name, obj, Lookup);
+            nameContentDict.Add(name, textCell);
+        }
+
+        /// <summary>
+        /// Test to see wheter the name of the cell is Valid and
+        /// if the obj passed is not null
+        /// </summary>
+        /// <param name="name">name of the cell</param>
+        /// <param name="obj">Formula or String</param>
+        private string IsValidInput(string name, object obj)
+        {
+            if (obj == null)
+                throw new ArgumentNullException();
+            return IsValidName(name);
+
+        }
+        /// <summary>
+        /// this helper Method checks to say if the name is null of an invalid variable
+        /// and throw a InvalidNameException if so.
+        /// </summary>
+        /// <param name="name">The normalized name if it is valid</param>
+        private String IsValidName(string name)
+        {
+            if (name == null)
+                throw new InvalidNameException();
+            if (!IsValid(name))
+                throw new InvalidNameException();
+            //normalize first then IsValid check
+            string normalizedName = Normalize(name);
+            
+            
+            //default correct name a9 A3 etc
+            string pattern = "^[a-zA-Z]+[0-9]+$";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(name, pattern))
+                throw new InvalidNameException();
+
+            //check to see that the normalized name is still valid
+            if (!System.Text.RegularExpressions.Regex.IsMatch(normalizedName, pattern))
+                throw new InvalidNameException();
+
+            return normalizedName;
+
+        }
+      
+        /// <summary>
+        /// looks up the value of the given variable if the varible does not
+        /// have a value the cells value will be set to a formula error
+        /// </summary>
+        /// <param name="variable"></param>
+        /// <returns></returns>
+        protected double Lookup(string variable)
+        {
+            //need to get the value of the variable
+            if (nameContentDict.ContainsKey(variable))
+            {
+                SSCell currentCell = nameContentDict[variable];
+                
+                //first see if the contents of the cell is a double
+                if (currentCell.Value is double)
+                {
+                    return (double)currentCell.Value;
+                }
+
+            }
+            // if variable is not in the dictionary or cell value is not a double
+            // throw an exception
+            // this will be caught in the Evalute method in the Formula class
+            // and it will return a FormulaError object
+            throw new ArgumentException();
+
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////// Inner cell class ///////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// This Class represent a single cell object of a spreadsheet. Each cell has a name
+        /// Value and Content.  The Content of the Cell is of type Double, Formula, or String
+        /// Value has been added as a place holder for upcoming assignmnet
+        /// </summary>
+
+        private class SSCell
+        {
+            /// <summary>
+            /// the name of the cell ex A1
+            /// </summary>
+            public string Name { get; set; }
+            /// <summary>
+            /// the content of the cell, could be a string, double, or Formula
+            /// </summary>
+            public Object Content { get; set; }
+            /// <summary>
+            /// the value of this cell will be null if it can't be evualated
+            /// </summary>
+            public Object Value { get; set; }
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="name">the name if the cell (A1 B1, etc)</param>
+            /// <param name="obj">The contents of the cell, (String, Formula, Double)</param>
+            /// <param name="lookup">lookup delagate</param>
+            public SSCell(string name, Object obj, Func<string, double> lookup)
+            {
+               
+                this.Name = name;
+                this.Content = obj;
+                // if string or double just set value
+                if (!(obj is Formula))
+                    Value = Content;
+                // evaluate the Formula
+                else
+                {
+                    Formula formula = (Formula)obj;//obj is a formula cast it.
+                    Value = formula.Evaluate(lookup);
+                }
+                
+            }
+            /// <summary>
+            /// Helper function that can be called to reevaluate the
+            /// value of the cell.  This is only ued if the cell content is 
+            /// a formula
+            /// </summary>
+            /// <param name="lookup"></param>
+            public void ReEvaluate(Func<string, double> lookup)
+            {
+                //only needs to be reevalueted if the contents are a Formula
+                if ((this.Content is Formula))
+                {
+                    Formula formula = (Formula)this.Content;//obj is a formula cast it.
+                    //note: ArgumentException will be caught and handled in the Evaluate method
+                    Value = formula.Evaluate(lookup);
+                }
+            }
+            /// <summary>
+            /// This method returns this cells content as a string
+            /// if content is a formula it apends an = sign to it.
+            /// </summary>
+            /// <returns>this cells content as a string</returns>
+            public string ContentAsString()
+            {
+                if (Content is Formula)
+                    return "=" + Content.ToString();
+                else
+                    return Content.ToString();
+            }
+
+        }//end SSCell
+    }//End spreadsheet
+}//End SS

@@ -1,0 +1,82 @@
+﻿<Window x:Class="BoggleClient.GameWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="BOGGLE - Game Window" Height="700" Width="500" ResizeMode="NoResize" Icon="Resource/boggleAlphabet/B.png">
+    <Grid Margin="0,0,-8,0" Background="#FFD3C38D" HorizontalAlignment="Left" Width="504">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="89*"/>
+            <RowDefinition Height="64*"/>
+            <RowDefinition Height="517*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0*"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0*"/>
+        </Grid.ColumnDefinitions>
+        <Label x:Name="time_label" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="--" Margin="217,6,225,0" VerticalAlignment="Top" Height="53" Background="#FF8DC3D3" FontSize="30" Grid.Column="1" Grid.Row="1"/>
+
+        <Label x:Name="current_player_score" Content="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="62,6,0,0" VerticalAlignment="Top" Height="53" Width="59" Background="#FFB9E4B7" FontSize="30" Grid.Column="1" RenderTransformOrigin="0.396,0.781" Grid.Row="1"/>
+        <TextBox x:Name="word_text_box" HorizontalAlignment="Left" Height="42" Margin="131,439,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="226" KeyDown="word_text_box_KeyDown" RenderTransformOrigin="0.515,1.822" Grid.Column="1" BorderThickness="5" BorderBrush="Black" Grid.Row="2" FontSize="20" />
+        <Button x:Name="send_word_button" Content="Submit" HorizontalAlignment="Left" Margin="375,439,0,0" VerticalAlignment="Top" Width="87" Click="send_word_button_Click" Grid.Column="1" Height="42" Grid.Row="2" FontSize="18"/>
+        <Label x:Name="current_player_label" Content="Your score" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="48,55,0,0" VerticalAlignment="Top" Height="40" Width="88" Grid.Column="1" RenderTransformOrigin="0.366,0.227" FontSize="16" Grid.RowSpan="2"/>
+        <Label x:Name="other_player_label" Content="" HorizontalAlignment="Left" Margin="345,47,0,0" VerticalAlignment="Top" Height="44" Width="103" Grid.Column="1" Grid.RowSpan="2"/>
+        <Grid x:Name="outer_boggle_grid" Height="420" Margin="38,0,0,0" VerticalAlignment="Top" Grid.Column="1" Background="#FFEE671A" Grid.Row="2" HorizontalAlignment="Left" Width="424">
+            <Grid x:Name="inner_boogle_grid" HorizontalAlignment="Left" Height="400" Margin="10,10,0,0" VerticalAlignment="Top" Width="400" Background="#FF030819">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="100"/>
+
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+
+
+                </Grid.ColumnDefinitions>
+                <Image x:Name="letter_image1" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                       RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png"/>
+                <Image x:Name="letter_image5" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Row="1"/>
+                <Image x:Name="letter_image2" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Column="1"/>
+                <Image x:Name="letter_image6" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Row="1" Grid.Column="1"/>
+                <Image x:Name="letter_image3" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Column="2"/>
+                <Image x:Name="letter_image4" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Column="3"/>
+                <Image x:Name="letter_image7" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Row="1" Grid.Column="2"/>
+                <Image x:Name="letter_image8" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Column="3" Grid.Row="1"/>
+                <Image x:Name="letter_image9" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Row="2"/>
+                <Image x:Name="letter_image10" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Row="2" Grid.Column="1"/>
+                <Image x:Name="letter_image14" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Column="1" Grid.Row="3"/>
+                <Image x:Name="letter_image13" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Row="3"/>
+                <Image x:Name="letter_image15" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Row="3" Grid.Column="2"/>
+                <Image x:Name="letter_image16" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Row="3" Grid.Column="3"/>
+                <Image x:Name="letter_image12" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Row="2" Grid.Column="3"/>
+                <Image x:Name="letter_image11" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100"
+                	RenderTransformOrigin="0.5,0.5" Source="Resource/boggleAlphabet/X.png" Grid.Row="2" Grid.Column="2"/>
+            </Grid>
+        </Grid>
+        <Grid Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="35" VerticalAlignment="Top" Width="504" Background="#FF43AADA">
+            <Button x:Name="exit_button" Content="Exit" HorizontalAlignment="Left" VerticalAlignment="Top" Width="125" Click="exit_button_Click" Height="35"/>
+            <Label Content="Label" HorizontalAlignment="Left" Margin="130,25,0,0" VerticalAlignment="Top"/>
+        </Grid>
+        <Label x:Name="other_player_label1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="Waiting..." HorizontalAlignment="Left" Margin="303,55,0,0" VerticalAlignment="Top" Height="41" Width="201" Grid.Column="1" RenderTransformOrigin="0.366,0.227" FontSize="16" Grid.RowSpan="2"/>
+        <Label x:Name="other_player_score" Content="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="374,6,0,0" VerticalAlignment="Top" Height="53" Width="60" Background="#FFB9E4B7" FontSize="30" Grid.Column="1" RenderTransformOrigin="0.396,0.781" Grid.Row="1"/>
+        <Label x:Name="Time_label" HorizontalContentAlignment="Center" Content="Time" HorizontalAlignment="Left" Margin="217,55,0,0" VerticalAlignment="Top" Height="44" Width="62" Grid.Column="1" RenderTransformOrigin="0.366,0.227" FontSize="20" Grid.RowSpan="2"/>
+    </Grid>
+</Window>

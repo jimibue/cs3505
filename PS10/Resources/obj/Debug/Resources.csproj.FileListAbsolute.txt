@@ -1,0 +1,5 @@
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\Resources\bin\Debug\Resources.dll.config
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\Resources\bin\Debug\Resources.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\Resources\bin\Debug\Resources.pdb
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\Resources\obj\Debug\Resources.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\Resources\obj\Debug\Resources.pdb

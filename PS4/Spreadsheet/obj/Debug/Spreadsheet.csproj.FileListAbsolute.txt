@@ -1,0 +1,6 @@
+X:\.win_my_documents\Visual Studio 2013\Projects\PS4\Spreadsheet\bin\Debug\Spreadsheet.dll
+X:\.win_my_documents\Visual Studio 2013\Projects\PS4\Spreadsheet\bin\Debug\Spreadsheet.pdb
+X:\.win_my_documents\Visual Studio 2013\Projects\PS4\Spreadsheet\bin\Debug\SpreadsheetUtilities.dll
+X:\.win_my_documents\Visual Studio 2013\Projects\PS4\Spreadsheet\bin\Debug\FormulaEvaluator.dll
+X:\.win_my_documents\Visual Studio 2013\Projects\PS4\Spreadsheet\obj\Debug\Spreadsheet.dll
+X:\.win_my_documents\Visual Studio 2013\Projects\PS4\Spreadsheet\obj\Debug\Spreadsheet.pdb

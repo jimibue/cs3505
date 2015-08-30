@@ -1,0 +1,390 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace FormulaEvaluator
+{
+    /// <summary>
+    /// y0! 
+    /// </summary>
+    public static class Evaluator
+    {
+        public delegate int Lookup(String v);
+        private static Stack<int> valueStack;
+        private static Stack<char> operationStack;
+        private static string theExp;
+
+        /// <summary>
+        ///  Performs basic math on expression given as a string.  Performs multiplication, division, addition, 
+        ///  subtraction and  accepts parethesis.  This method also accepts varaibles given a delagate that recieves
+        ///  a string and returns an int.  If the math equation is in illegal form.
+        /// </summary>
+        /// <param name="exp">String - math expresion ie "1+2 * (2+3)"</param>
+        /// <param name="variableEvaluator">Lookup delegate that reiceives a string and returns an int</param>
+        /// <returns>the value of the given math expresion as a integer</returns>
+        public static int Evaluate(String exp, Lookup variableEvaluator)
+        {
+            theExp = exp;
+            valueStack = new Stack<int>();
+            operationStack = new Stack<char>();
+
+
+            // splits a string based to an array if these characters are encounter ( ) - + * /
+            exp = Regex.Replace(exp, @"\s+", " ");
+            string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
+
+            //loop through the expression
+            foreach (string str1 in substrings)
+            {
+
+
+                //check for an empty string gnore it if is..
+                string str = str1.Trim();
+                str = Regex.Replace(str, @"\s+", " ");
+                if (str.Equals(""))
+                    continue;
+
+                //First check to see if the token is a postive number
+                double number;
+                if (double.TryParse(str, out number))
+                {
+                    if (number >= 0)
+                        intRecieved(number);
+                    else throw new ArgumentException("non-negative numbers are not allowed");
+                }
+
+                else
+                {
+                    string checkedExp = CheckExpresion(str);
+                    //here the token is legal and is either a expression or variable
+                    if (checkedExp.Equals("var"))
+                    {
+                        int num = variableEvaluator(str);
+                        if (num >= 0)
+                            intRecieved(num);
+                        else throw new ArgumentException("non-negative numbers are not allowed");
+
+                    }
+                    //token mut be +,-,*,/,(,) 
+                    else
+                    {
+                        ExpressionRecieved(str[0]);
+                    }
+                }
+            }
+            // the entire expresion has been processed return value.
+            int finalAns = DetermineAnswer();
+            return finalAns;
+
+
+
+        }
+
+        private static int DetermineAnswer()
+        {
+            if (valueStack.Count == 0)
+                throw new Exception(theExp +" is not a legal expression, value stack is empty should contain at least 1 value");
+            if (valueStack.Count == 1)
+            {
+                return valueStack.Pop();
+            }
+            else
+            {
+                //check for possible errors
+                if (operationStack.Count != 1)
+                {
+
+                    throw new Exception(theExp + " is not a legal expression, operation stack should have exactly 1 value has " + operationStack.Count);
+                }
+                if (valueStack.Count != 2)
+                {
+                    throw new Exception(theExp + " is not a legal expression, value stack should have exactly 2 value has " + valueStack.Count);
+                }
+                char oper = operationStack.Pop();
+                if (oper == '+')
+                    return (valueStack.Pop() + valueStack.Pop());
+                else if (oper == '-')
+                {
+                    int temp = valueStack.Pop();
+                    return (valueStack.Pop() - temp);
+                }
+                else if (oper == '*')
+                    return (valueStack.Pop() * valueStack.Pop());
+                else
+                {
+                    int temp = valueStack.Pop();
+                    int temp1 = valueStack.Pop();
+                    if (temp1 == 0)
+                        throw new ArgumentException("divison by zero");
+                    else
+                        return (temp / temp1);
+                }
+
+            }
+        }
+        /// <summary>
+        /// simple helper method that determines which math expression has been recieved 
+        /// 
+        /// </summary>
+        /// <param name="expression">math expresion " (,),+,-,/,* "</param>
+        private static void ExpressionRecieved(char expression)
+        {
+            if (expression == '(' || expression == '*' || expression == '/')
+            {
+                operationStack.Push(expression);
+            }
+            else if (expression == '+' || expression == '-')
+            {
+                addSubRecieved(expression);
+            }
+            else
+            {
+                RightParaenthesisRecieved();
+            }
+
+        }
+
+
+        /// <summary> this method takes in the token and determines if it is a legal character for this program
+        /// legal characters include (,),+,-,*,/ and letters and numbers.  This function also test if
+        /// a variable is in correct format which is 1 or more letters followed by 1 or more digits (numbers).
+        /// This method will throw an error if not correct form.
+        /// 
+        /// </summary>
+        /// <param name="str">The expression to be checked</param>
+        /// <returns>"var" if the string is a correctly formatted character or the expresion</returns>
+        private static string CheckExpresion(string str)
+        {
+
+            if (str.Length == 1)
+            {
+
+                char exp = str[0];
+                if (exp == '+' || exp == '-' || exp == '*' || exp == '/' || exp == ')' || exp == '(')
+                {
+                    return exp.ToString();
+                }
+                else
+                {
+                    throw new ArgumentException("'" + str + "' is an illegeal Expresion");
+                }
+            }
+
+            else
+            {
+
+                bool numberHit = false;
+                //loop through each char and see if first char is a letter and each letter is char until a number
+                //is hit at which point check to se if remaing chars are numbers 
+                foreach (char c in str)
+                {
+                    if (!numberHit)
+                    {
+                        if (isLetter(c))
+                            continue;
+                        else
+                        {
+                            if (isNumber(c))
+                                numberHit = true;
+                            else
+                                throw new ArgumentException("'" + str + "' is an illegeal variable");
+                        }
+                    }
+                    if (isNumber(c))
+                        continue;
+                    else
+                        throw new ArgumentException("'" + str + "' is an illegeal variable");
+                }
+                if (!numberHit)
+                    throw new ArgumentException("'" + str + "' is an illegeal variable");
+                return "var";
+            }
+        }
+        /// <summary>
+        /// Determines wether a character is a Letter A-Z and a-z using ascii values
+        /// </summary>
+        /// <param name="c">a char</param>
+        /// <returns>true if c is a letter false otherwise</returns>
+        private static bool isLetter(char c)
+        {
+            if (c >= 65 && c <= 122)
+                return true;
+            return false;
+        }
+        /// <summary>
+        /// Determines wether a character is a number (0-9)
+        /// </summary>
+        /// <param name="c">a char</param>
+        /// <returns>true if c is (0-9) false otherwise</returns>
+
+        private static bool isNumber(char c)
+        {
+            if (c >= 48 && c <= 57)
+                return true;
+            return false;
+        }
+
+        private static void RightParaenthesisRecieved()
+        {
+            if (operationStack.Count == 0)
+            {
+                //error
+                throw new Exception(" \' )\' received before a");
+
+            }
+            //this is checking a situation like + 9 - 10; where operator is first
+
+            char oper = operationStack.Peek();
+            if (oper == '+' || oper == '-')
+            {
+                //addSubRecieved(oper);
+
+                if (valueStack.Count < 2)
+                {
+                    //error
+                }
+                else if (oper == '+')
+
+
+                    valueStack.Push(valueStack.Pop() + valueStack.Pop());
+
+
+                else if (oper == '-')
+                {
+                    int temp = valueStack.Pop();
+
+                    valueStack.Push(valueStack.Pop() - temp);
+                   
+
+                }
+                operationStack.Pop();
+                if (operationStack.Peek() == '(')
+                    operationStack.Pop();
+                else
+                    Console.WriteLine("potential problem");
+
+            }
+            else if (oper == '(')
+            {
+                //error?
+                Console.WriteLine("potential problem1");
+                operationStack.Pop();
+            }
+            else
+            {
+                operationStack.Pop();
+                if (valueStack.Count < 2)
+                {
+                    //error
+                }
+                else if (oper == '*')
+                {
+                    valueStack.Push(valueStack.Pop() * valueStack.Pop());
+                    operationStack.Pop();
+                }
+                else
+                {
+                    valueStack.Push(valueStack.Pop() / valueStack.Pop());
+                    operationStack.Pop();
+                }
+            }
+
+        }
+        /// <summary>
+        /// Called if current token is a + or -.  Will check to see if the next item on operation stack is
+        /// a + or minus if it is it will perform that operation. if it is * or / then the operation will be pushed
+        /// on the stack
+        /// </summary>
+        /// <param name="p">the current token either a + or -</param>
+
+        private static void addSubRecieved(char p)
+        {
+
+            if (operationStack.Count == 0)
+            {
+                operationStack.Push(p);
+                return;
+            }
+            char oper = operationStack.Peek();
+            if (oper == '+' || oper == '-')
+            {
+                if (valueStack.Count < 2)
+                {
+                    //error
+                }
+                else if (oper == '+')
+                {
+
+                    valueStack.Push(valueStack.Pop() + valueStack.Pop());
+                    operationStack.Pop();
+                    
+                }
+                else if (oper == '-')
+                {
+                    int temp = valueStack.Pop();
+                    
+                    valueStack.Push(valueStack.Pop() - temp);
+                    operationStack.Pop();
+                    
+                }
+            }
+            //operation is a * or / ( or )
+           
+             operationStack.Push(p);
+            
+        }
+        /// <summary>
+        /// Called when the current token is a double.
+        /// </summary>
+        /// <param name="number">the curent token being processed</param>
+        private static void intRecieved(double number)
+        {
+            int num = (int)number;
+            //no current operation push num
+            if (operationStack.Count == 0)
+            {
+                valueStack.Push(num);
+                return;
+            }
+
+            char operation = operationStack.Peek();
+            if (operation == '*' || operation == '/')
+            {
+                operationStack.Pop();
+                if (valueStack.Count == 0)
+                {
+                    throw new ArgumentException("Illegal expression used.");
+                }
+                else
+                {
+                    int topInt = valueStack.Pop();
+                    if (operation == '*')
+                    {
+                        valueStack.Push(topInt * num);
+                        return;
+                    }
+                    else if (operation == '/')
+                    {
+                        if (num == 0)
+                            throw new ArgumentException("division by 0");
+
+                        valueStack.Push(topInt / num);
+                        return;
+                    }
+                }
+            }
+           
+            else
+            
+                valueStack.Push(num);
+           
+        }
+        private static int Test(string s)
+        {
+            return 1;
+        }
+    }
+}

@@ -1,0 +1,157 @@
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Net.Sockets;
+using System.Net;
+using CC;
+using System.Threading;
+
+namespace BoggleServerUnitTests
+{
+    [TestClass]
+    public class BoggleServerUnitTest1
+    {
+        // Use ClassInitialize to run code before running the first test in the class
+        [ClassInitialize()]
+        public static void MyClassInitialize(TestContext testContext)
+        {
+            new BoggleServer.BoggleServer(5, "..\\..\\..\\Resources\\Libraries\\dictionary.txt", "LAAYVIXZEOHOSMEN");
+            //new BoggleServer.BoggleServer(5, "..\\..\\..\\Resources\\Libraries\\dictionary.txt", "TESRRDELEAOBSINM");
+        }
+
+        /// <summary>
+        /// A simple test that imitates a simple game and tests whether 
+        /// the client receives the proper strings from the server.
+        /// </summary>
+        [TestMethod]
+        public void TestSimpleGame()
+        {
+            // Create two clients.
+            BoggleClientModel client1 = new BoggleClientModel();
+            BoggleClientModel client2 = new BoggleClientModel();
+
+            // Connect the clients.
+            client1.Connect("localhost", 2000, "PLAY Harry");
+            client2.Connect("localhost", 2000, "PLAY Hermione");
+
+            // Check start messages.
+            Thread.Sleep(50);
+            Assert.AreEqual("START LAAYVIXZEOHOSMEN 5 Hermione", client1.msgString);
+            Assert.AreEqual("START LAAYVIXZEOHOSMEN 5 Harry", client2.msgString);
+
+            // Send words, and check the score messages:
+
+            client1.SendGoMessage("WORD home");
+            Thread.Sleep(50);
+            Assert.AreEqual("SCORE 1 0", client1.msgString);
+            Assert.AreEqual("SCORE 0 1", client2.msgString);
+
+            client2.SendGoMessage("WORD homes");
+            Thread.Sleep(50);
+            Assert.AreEqual("SCORE 1 2", client1.msgString);
+            Assert.AreEqual("SCORE 2 1", client2.msgString);
+
+            // Send a word already played by other player
+            client2.SendGoMessage("WORD home");
+            Thread.Sleep(50);
+            Assert.AreEqual("SCORE 0 2", client1.msgString);
+            Assert.AreEqual("SCORE 2 0", client2.msgString);
+
+            // Send an invalid word
+            client2.SendGoMessage("WORD asdfjkl");
+            Thread.Sleep(50);
+            Assert.AreEqual("SCORE 0 1", client1.msgString);
+            Assert.AreEqual("SCORE 1 0", client2.msgString);
+
+            // Make time run out, then check game summary messages.
+            Thread.Sleep(6000);
+            Assert.AreEqual("STOP 0 1 HOMES 1 HOME 0 1 ASDFJKL", client1.msgString); 
+            Assert.AreEqual("STOP 1 HOMES 0 1 HOME 1 ASDFJKL 0", client2.msgString);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [TestMethod]
+        public void TwoGames()
+        {
+            // Create four clients.
+            BoggleClientModel client1 = new BoggleClientModel();
+            BoggleClientModel client2 = new BoggleClientModel();
+            BoggleClientModel client3 = new BoggleClientModel();
+            BoggleClientModel client4 = new BoggleClientModel();
+
+            // Connect the clients.
+            client1.Connect("localhost", 2000, "PLAY Harry");
+            client2.Connect("localhost", 2000, "PLAY Hermione");
+            client3.Connect("localhost", 2000, "PLAY Ron");
+            client4.Connect("localhost", 2000, "PLAY Crookshanks");
+            Thread.Sleep(1000);
+
+            // Send words.
+            client2.SendGoMessage("WORD home");
+            client3.SendGoMessage("WORD hives");
+            client1.SendGoMessage("WORD invalid");
+            client4.SendGoMessage("WORD hive");
+            client1.SendGoMessage("WORD homes");
+            client3.SendGoMessage("WORD xxx");
+            client4.SendGoMessage("WORD hives");
+
+            // Check scores.
+            Thread.Sleep(100);
+            Assert.AreEqual("SCORE 1 1", client1.msgString);
+            Assert.AreEqual("SCORE 1 1", client2.msgString);
+            Assert.AreEqual("SCORE -1 1", client3.msgString);
+            Assert.AreEqual("SCORE 1 -1", client4.msgString);
+
+            // Make time run out, then check game summary messages.
+            Thread.Sleep(6000);
+            Assert.AreEqual("STOP 1 HOMES 1 HOME 0 1 INVALID 0", client1.msgString);
+            Assert.AreEqual("STOP 1 HOME 1 HOMES 0 0 1 INVALID", client2.msgString);
+            Assert.AreEqual("STOP 0 1 HIVE 1 HIVES 1 XXX 0", client3.msgString);
+            Assert.AreEqual("STOP 1 HIVE 0 1 HIVES 0 1 XXX", client4.msgString);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [TestMethod]
+        public void TestGame()
+        {
+            //// Create two clients.
+            //BoggleClientModel client1 = new BoggleClientModel();
+            //BoggleClientModel client2 = new BoggleClientModel();
+
+            //// Connect the clients.
+            //client1.Connect("localhost", 2000, "PLAY Harry");
+            //client2.Connect("localhost", 2000, "PLAY Hermione");
+            //Thread.Sleep(100);
+
+            //// Send words and check scores.
+
+            //client1.SendGoMessage("WORD reloader");
+            //Thread.Sleep(50);
+            //Assert.AreEqual("SCORE 11 0", client1.msgString);
+            //Assert.AreEqual("SCORE 0 11", client2.msgString);
+
+            //client1.SendGoMessage("WORD RELOAD");
+            //Thread.Sleep(50);
+            //Assert.AreEqual("SCORE 14 0", client1.msgString);
+            //Assert.AreEqual("SCORE 0 14", client2.msgString);
+
+            //client2.SendGoMessage("WORD reload");
+            //Thread.Sleep(50);
+            //Assert.AreEqual("SCORE 11 0", client1.msgString);
+            //Assert.AreEqual("SCORE 0 11", client2.msgString);
+
+            //client2.SendGoMessage("WORD ReLoaDS");
+            //Thread.Sleep(50);
+            //Assert.AreEqual("SCORE 11 5", client1.msgString);
+            //Assert.AreEqual("SCORE 5 11", client2.msgString);
+
+            //// Make time run out, then check game summary messages.
+            //Thread.Sleep(6000);
+            //Assert.AreEqual("STOP 1 RELOADER 1 RELOADS 1 RELOAD 0 0", client1.msgString);
+            //Assert.AreEqual("STOP 1 RELOADS 1 RELOADER 1 RELOAD 0 0", client2.msgString);
+        }
+    }
+}

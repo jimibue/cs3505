@@ -1,0 +1,1086 @@
+﻿// Written by James Yeates for CS 3500, September 2014
+using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SpreadsheetUtilities;
+using SS;
+using System.Collections.Generic;
+
+namespace SpreadsheetTest
+{
+    /// <summary>
+    /// Tests a simple spreadsheet.  Test creating cells and content of the cells
+    /// Value of the cell is not tested for in these test.  
+    /// </summary>
+    [TestClass]
+    public class UnitTest1
+    {
+
+        /// <summary>
+        /// Basic test to see if constructors can actually be called
+        /// </summary>
+        [TestMethod]
+        public void EmptyTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+            //ss.SetContentsOfCell("A1", "=1--1");
+        }
+        /// <summary>
+        /// Basic test to see if Normilize is working
+        /// </summary>
+        [TestMethod]
+        public void BasicNormalizeTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "version");
+            ISet<string> hset = (HashSet<string>) ss.SetContentsOfCell("a1", "2.0");
+
+            Assert.IsTrue(hset.Contains("A1")&& hset.Count==1);
+        }
+        /// <summary>
+        /// Basic test to see if IsValid is working
+        /// </summary>
+        [ExpectedException(typeof(InvalidNameException))]
+        [TestMethod]
+        public void BasicNotValidTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => false, s => s.ToUpper(), "version");
+            ISet<string> hset = (HashSet<string>)ss.SetContentsOfCell("a1", "2.0");
+
+            Assert.IsTrue(hset.Contains("A1") && hset.Count == 1);
+        }
+
+        /// <summary>
+        /// Basic test to evaluate is working for cells containg doubles and strings
+        /// </summary>
+        [TestMethod]
+        public void BasicEvaluateTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+            //test double
+            ss.SetContentsOfCell("A1", "2.0");
+            Assert.IsTrue(ss.GetCellValue("A1").Equals(2.0));
+            //test string
+            ss.SetContentsOfCell("A1", "Hello");
+            Assert.IsTrue(ss.GetCellValue("A1").Equals("Hello"));
+            //test a cell that is not there
+            Assert.IsTrue(ss.GetCellValue("B1").Equals(""));
+        }
+
+        /// <summary>
+        /// Basic test to evaluate is working for cells "=2+2"
+        /// </summary>
+        [TestMethod]
+        public void BasicEvaluateTest3()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+            //test double
+            ss.SetContentsOfCell("A1", "=2.0+2.0");
+            Assert.IsTrue(ss.GetCellValue("A1").Equals(4.0));
+         
+        }
+        /// <summary>
+        /// Basic test to evaluate is working for cell that contains a cell as its content
+        /// </summary>
+        [TestMethod]
+        public void BasicEvaluateTest4()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+            //test double
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("A2", "=A1");
+            //
+            Assert.AreEqual(2.0, ss.GetCellValue("A2"));
+
+        }
+        /// <summary>
+        /// Basic test to evaluate is working for cell that contains a cell as its content
+        /// </summary>
+        [TestMethod]
+        public void PS6Test1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+            //test double
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("A2", "=A1");
+            //
+            Assert.AreEqual(2.0, ss.GetCellValue("A2"));
+
+            ss.SetContentsOfCell("A1", "");
+            Assert.AreNotEqual(2.0, ss.GetCellValue("A2"));
+
+        }
+        /// <summary>
+        /// Basic test to evaluate is working for cell containing a string
+        /// </summary>
+        [TestMethod]
+        public void BasicEvaluateTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+
+            ss.SetContentsOfCell("A1", "2.0 + 2.0");
+            Assert.IsTrue(ss.GetCellValue("A1").Equals("2.0 + 2.0"));
+
+        }
+        /// <summary>
+        /// Basic test to evaluate is working for cell that contains a cell as its content
+        /// </summary>
+        [TestMethod]
+        public void BasicEvaluateTest5()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+            //test double
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("A2", "4");
+            ss.SetContentsOfCell("A3", "=A1-2.0");
+            ss.SetContentsOfCell("A1", "3.0");
+            
+            //
+            Assert.AreEqual(1.0, ss.GetCellValue("A3"));
+        }
+        /// <summary>
+        /// Basic test saving to an invalid file path
+        /// </summary>
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        [TestMethod]
+        public void BasicFailSaveTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+            // test double
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("A2", "string");
+            ss.Save(@"..\..\XML1\XMLFilezz.xmls");
+
+
+        }
+
+        /// <summary>
+        /// Basic test to test saving an xml
+        /// </summary>
+        [TestMethod]
+        public void BasicSaveTest1a()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+           // test double
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("A2", "string");
+            ss.Save(@"..\..\XML\XMLFilezz.xmls");
+
+            AbstractSpreadsheet ss1 = new Spreadsheet(@"..\..\XML\XMLFilezz.xmls",s => true, s => s, "version");
+            Assert.AreEqual("string", ss1.GetCellValue("A2"));
+
+        }
+      
+        /// <summary>
+        /// create and save a simple spread sheet that has two cells one that has 2 the other has a formula
+        /// with that cell plus 2, then the file is read to see that the value 'A2' is 4.0 (2+2)
+        /// </summary>
+        [TestMethod]
+        public void BasicSaveTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "version");
+            // test double
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("A2", "=A1+2");
+            ss.Save("XMLRewriteFile.xml");
+
+            AbstractSpreadsheet ss1 = new Spreadsheet("XMLRewriteFile.xml", s => true, s => s, "version");
+            Assert.AreEqual(4.0, ss1.GetCellValue("A2"));
+
+        }
+        /// <summary>
+        /// create and save a simple spread sheet that has two cells one that has 2 the other has a formula
+        /// with that cell plus 2, then the file is read to see that the value 'A2' is 4.0 (2+2)
+        /// </summary>
+        [TestMethod]
+        public void BasicSaveTest2a()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "version");
+            // test double
+            ss.SetContentsOfCell("a1", "2.0");
+            ss.SetContentsOfCell("A2", "=A1+2");
+            ss.Save("XMLRewriteFile.xml");
+
+            AbstractSpreadsheet ss1 = new Spreadsheet("XMLRewriteFile.xml", s => true, s => s.ToUpper(), "version");
+            Assert.AreEqual(4.0, ss1.GetCellValue("A2"));
+
+        }
+
+        /// <summary>
+        /// Basic test to a incorrect file path
+        /// </summary>
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        [TestMethod]
+        public void InvalidFileNameTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet("XMLFile3234.xml", s => true, s => s, "version 1.1");
+
+        }
+        /// <summary>
+        /// Basic test to see if normailzer changes name to invalid na
+        /// </summary>
+        [ExpectedException(typeof(InvalidNameException))]
+        [TestMethod]
+        public void InvalidNameTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet( s => true, s => s +"A", "version 1.1");
+            ss.SetContentsOfCell("A1", "123a");
+
+        }
+
+        /// <summary>
+        /// Basic test to test reading an xml
+        /// </summary>
+        [TestMethod]
+        public void BasicReadTest1()
+        {
+
+            AbstractSpreadsheet ss = new Spreadsheet( s => true, s => s, "version");
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.Save("XMLFile2.xml");
+            AbstractSpreadsheet ss1 = new Spreadsheet("XMLFile2.xml", s => true, s => s, "version");
+            ss1.GetCellValue("A1");
+            Assert.AreEqual(2.0, ss1.GetCellValue("A1"));
+            
+        }
+
+        /// <summary>
+        /// Basic test to test if get saved version works
+        /// </summary>
+        [TestMethod]
+        public void GetSavedVersionTest1a()
+        {
+            //create and fill the spreadsheet
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "version 1.1");
+            // test double
+            ss.SetContentsOfCell("a1", "2.0");
+            ss.SetContentsOfCell("A2", "=A1+2");
+            ss.Save("XMLRewriteFile2.xml");
+
+            AbstractSpreadsheet ss1 = new Spreadsheet("XMLRewriteFile2.xml", s => true, s => s.ToUpper(), "version 1.1");
+            Assert.AreEqual("version 1.1", ss1.GetSavedVersion("XMLRewriteFile2.xml"));
+
+        }
+        /// <summary>
+        /// Invalid formula format test
+        /// </summary>
+        /// 
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void BasicInvalidFormulaTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+
+            ss.SetContentsOfCell("A1", "=A2 + ");
+            //Assert.IsTrue(ss.GetCellValue("A1") is FormulaError);
+        }
+
+        /// <summary>
+        /// Invalid formula format test
+        /// </summary>
+        [TestMethod]
+        
+        public void InvalidFormulaTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+
+            ss.SetContentsOfCell("A1", "=A2 + 2");
+            Assert.IsTrue(ss.GetCellValue("A1") is FormulaError);
+        }
+
+        /// <summary>
+        /// Invalid formula format test
+        /// </summary>
+        [TestMethod]
+        public void InvalidFormulaTest3()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+
+            ss.SetContentsOfCell("A1", "=A2 + 2");
+            //A2 is not set yet so A1 should be a FormulaError
+            Assert.IsTrue(ss.GetCellValue("A1") is FormulaError);
+            ss.SetContentsOfCell("A2", "=2 + 2");
+
+            //A2 is not set yet so A1 should be a FormulaError
+            Assert.AreEqual(6.0, ss.GetCellValue("A1"));
+        }
+        /// <summary>
+        /// Invalid formula format test
+        /// </summary>
+        [TestMethod]
+        public void InvalidFormulaTest3b()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+
+            //similar test to 3a just check that it wirks with a number
+            ss.SetContentsOfCell("A1", "=A2 + 2");
+            Assert.IsTrue(ss.GetCellValue("A1") is FormulaError);
+            ss.SetContentsOfCell("A2", "4");
+            Assert.AreEqual(6.0, ss.GetCellValue("A1"));
+
+            //set A2 to a string A1 should now be a FormulaError
+            ss.SetContentsOfCell("A2", "hello");
+            Assert.IsTrue(ss.GetCellValue("A1") is FormulaError);
+        }
+        /// <summary>
+        /// Invalid formula format test
+        /// </summary>
+        [TestMethod]
+        public void InvalidFormulaTest3a()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "version");
+            
+            ss.SetContentsOfCell("A2", "=2 + 2");
+            ss.SetContentsOfCell("A1", "=A2 + 2");
+            
+            Assert.AreEqual(6.0, ss.GetCellValue("A1"));
+
+            ss.SetContentsOfCell("A2", "changed from formula to string");
+            Assert.AreNotEqual(6.0, ss.GetCellValue("A1"));
+            Assert.IsTrue(ss.GetCellValue("A1") is FormulaError);
+        }
+
+        /// <summary>
+        /// Xml file has been modified so it has an empty name element 
+        /// all cells should have a name
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadXmlFileTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile1.xmls", s => true, s => s, "version");
+        }
+        /// <summary>
+        /// this file being read is missing a closing tag and has invalid format
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadXmlFileTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile2.xmls", s => true, s => s, "version");
+        }
+
+        /// <summary>
+        /// this file has bad format has 2 name tags side by side
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadXmlFileTest3()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile3.xmls", s => true, s => s, "version");
+        }
+        /// <summary>
+        /// this file has bad format as shown below
+        /// <cell><name>A1</name></cell><cell><contents>string</contents></cell>
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadXmlFileTest4()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile4.xmls", s => true, s => s, "version");
+        }
+        /// <summary>
+        ///this xml file has a circular dependency should throw exception.
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadXmlFileTest5()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile5.xmls", s => true, s => s, "version");
+        }
+        /// <summary>
+        ///this xml file contains a invlaid formula
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadXmlFileTest6()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile6.xmls", s => true, s => s, "version");
+        }
+        /// <summary>
+        ///this xml file contains an empty string for its version information and should fail because version inforamtion
+        ///does not match
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadXmlFileTest7()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile7.xmls", s => true, s => s, "version");
+        }
+        /// <summary>
+        ///not sure what to do about an empty string 
+        /// </summary>
+        [TestMethod]
+
+        
+        public void XmlFileTest7a()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile7.xmls", s => true, s => s, "");
+            Assert.AreEqual("", ss.Version);
+        }
+        /// <summary>
+        ///this xml file contains no version information attribute and should fail
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadXmlFileTest8()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile8.xmls", s => true, s => s, "version");
+        }
+        /// <summary>
+        ///this xml file contains two version information tags should fail
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadXmlFileTest9()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile9.xmls", s => true, s => s, "version");
+        }
+        /// <summary>
+        ///this xml file is missing name information
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadXmlFileTest10()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\XML\BadXmlFile10.xmls", s => true, s => s, "version");
+        }
+        /// <summary>
+        ///this has a bad path to a file (directory does not exist
+        /// </summary>
+        [TestMethod]
+
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void BadFilePathTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(@"..\..\baddirectory\BadXmlFile9.xmls", s => true, s => s, "version");
+        }
+
+
+
+     
+        
+        
+        
+        
+        
+        //////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////// PS4 Test (Modified) //////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Basic test to see that test is adding number
+        /// </summary>
+        [TestMethod]
+       
+        public void ExamTest()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetContentsOfCell("A1", "=A2");
+            ss.SetContentsOfCell("A2", "7.0");
+            Assert.AreEqual(7.0, ss.GetCellContents("A2"));
+            try
+            {
+                ss.SetContentsOfCell("A2", "=A2");
+                Assert.Fail();
+            }catch(CircularException e)
+            {
+               
+                Assert.AreEqual(7.0, ss.GetCellContents("A2"));
+                Assert.AreEqual(7.0, ss.GetCellValue("A1"));
+            }
+        }
+
+        /// <summary>
+        /// Basic test to see that test is adding number
+        /// </summary>
+        [TestMethod]
+
+        public void ExamTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetContentsOfCell("A1", "=A2");
+            ss.SetContentsOfCell("A2", "=A3");
+            ss.SetContentsOfCell("A3", "7.0");
+           // Assert.AreEqual("A2", ss.GetCellContents("A1"));
+            try
+            {
+                ss.SetContentsOfCell("A2", "=A2");
+                Assert.Fail();
+            }
+            catch (CircularException e)
+            {
+
+                Assert.AreEqual("A3", ss.GetCellContents("A2").ToString());
+
+                Assert.AreEqual("A2", ss.GetCellContents("A1").ToString());
+            }
+        }
+        /// <summary>
+        /// Basic test to see that test is adding number
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void GetCellContentsTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.GetCellContents("1");
+        }
+        /// <summary>
+        /// Basic test to see that test is adding number
+        /// </summary>
+        [TestMethod]
+        public void GetCellContentsTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+
+            ss.SetContentsOfCell("A1", "2.0");
+            Assert.AreEqual(2.0, ss.GetCellContents("A1"));
+
+        }
+        /// <summary>
+        /// Basic test to see that test is adding number
+        /// </summary>
+        [TestMethod]
+        public void GetCellContentsTest3()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+
+            ss.SetContentsOfCell("A1", "X+2");
+            Assert.AreEqual("X+2", ss.GetCellContents("A1"));
+
+        }
+        /// <summary>
+        /// I am unsure what this should but I think a1 should be normalized
+        /// </summary>
+        [TestMethod]
+        public void GetCellContentsTest5()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "version");
+
+            ss.SetContentsOfCell("a1", "X+2");
+            Assert.AreEqual("X+2", ss.GetCellContents("a1"));
+
+        }
+
+
+        /// <summary>
+        /// Invalid formula
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void InvalidFormulaContentsTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "version");
+
+            ss.SetContentsOfCell("A1", "1");
+            ss.SetContentsOfCell("A2", "=1a1");
+        }
+        /// <summary>
+        /// Invalid formula
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void InvalidFormulaContentsTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "version");
+
+            ss.SetContentsOfCell("A1", "1");
+            ss.SetContentsOfCell("A2", "=a1 + a1a");
+        }
+
+
+        /////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////   /  Documentation Tests           //////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////
+
+
+
+        // Test GetNamesOfAllNonemptyCells()
+        // Enumerates the names of all the non-empty cells in the spreadsheet.
+
+        /// <summary>
+        /// Basic test to see if constructors can actually be called
+        /// </summary>
+        [TestMethod]
+        public void GetNamesOfAllNonemptyCellsEmptyTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            HashSet<string> testSet = (HashSet<string>)ss.GetNamesOfAllNonemptyCells();
+
+            Assert.IsTrue(testSet.SetEquals(new HashSet<string>() { }));
+        }
+
+        /// <summary>
+        /// Basic test to see that test is adding number
+        /// </summary>
+        [TestMethod]
+        public void GetNamesOfAllNonemptyCellsBasicTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+
+            ss.SetContentsOfCell("A1", "2.0");
+            HashSet<string> testSet = (HashSet<string>)ss.GetNamesOfAllNonemptyCells();
+
+            Assert.IsTrue(testSet.SetEquals(new HashSet<string>() { "A1" }));
+
+        }
+
+        ///////////////public abstract object GetCellContents(String name);/////////////////////////
+
+        // If name is null or invalid, throws an InvalidNameException.
+
+        /// <summary>
+        /// Name is invalid here
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void GetCellContentsTest1a()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.GetCellContents("1");
+        }
+
+        /// <summary>
+        /// Name is null here
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void GetCellContentsTest2a()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.GetCellContents(null);
+        }
+
+        // If text is null, throws an ArgumentNullException.
+        /// <summary>
+        /// null string test
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullExceptionTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+        
+            ss.SetContentsOfCell("A1", null);
+        }
+
+        /// <summary>
+        /// TEst that an empty string is returned if name is not in graph
+        /// </summary>
+        [TestMethod]
+
+        public void GetCellContentsTest2b()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+
+            Assert.AreEqual("", ss.GetCellContents("A1"));
+        }
+
+        // Otherwise, returns the contents (as opposed to the value) of the named cell.  The return
+        // value should be either a string, a double, or a Formula
+
+        /// <summary>
+        /// Basic test to see that test is adding number
+        /// </summary>
+        [TestMethod]
+        public void GetCellContentsTest3a()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+
+            ss.SetContentsOfCell("A1", "2.0");
+            Assert.AreEqual(2.0, ss.GetCellContents("A1"));
+
+        }
+        /// <summary>
+        /// Basic test to see that test is adding string properly
+        /// </summary>
+        [TestMethod]
+        public void GetCellContentsTest4a()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+
+            ss.SetContentsOfCell("A1", "B1*A1");
+            Assert.AreEqual("B1*A1", ss.GetCellContents("A1"));
+
+        }
+
+        /// <summary>
+        /// Basic test to see that test is adding string properly
+        /// </summary>
+        [TestMethod]
+
+        public void GetCellContentsTest4()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            Formula A1 = new Formula("2+3+A2");
+            ss.SetContentsOfCell("A1", "A1");
+            Assert.AreEqual("A1", ss.GetCellContents("A1"));
+
+        }
+
+
+        //public abstract ISet<String> SetContentsOfCell(String name, double number);
+
+
+
+        // If name is null or invalid, throws an InvalidNameException.
+        //tested already = method IsValid()
+        // 
+        // Otherwise, the contents of the named cell becomes number.  The method returns a
+        // set consisting of name plus the names of all other cells whose value depends, 
+        // directly or indirectly, on the named cell.
+        // 
+        // For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+        // set {A1, B1, C1} is returned.
+
+        [TestMethod]
+        public void DocTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("B1", "A1*2");
+            ss.SetContentsOfCell("C1", "B1+A1");
+
+            //sets should be equal
+            Assert.IsTrue(new HashSet<string> { "A1" }.SetEquals((HashSet<string>)ss.SetContentsOfCell("A1", "1.0")));
+
+        }
+
+        //public abstract ISet<String> SetContentsOfCell(String name, String text);
+
+        // If text is null, throws an ArgumentNullException.
+        /// <summary>
+        /// null string test
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void SetContentsOfCellStringTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            string s = null;
+            ss.SetContentsOfCell("A1", s);
+        }
+
+        // Otherwise, if name is null or invalid, throws an InvalidNameException.
+        //tested
+
+        // Otherwise, the contents of the named cell becomes text.  The method returns a
+        // set consisting of name plus the names of all other cells whose value depends, 
+        // directly or indirectly, on the named cell.
+        // 
+        // For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+        // set {A1, B1, C1} is returned.
+        // </summary>
+
+        [TestMethod]
+        public void SetContentsOfCellStringTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+
+
+            ss.SetContentsOfCell("B1", "A1*2");
+            ss.SetContentsOfCell("C1", "B1+A1");
+
+
+            //sets should be equal
+            Assert.IsTrue(new HashSet<string> { "A1" }.SetEquals((HashSet<string>)ss.SetContentsOfCell("A1", "2.0")));
+            Assert.IsTrue(ss.GetCellContents("C1").Equals("B1+A1"));
+        }
+
+        [TestMethod]
+        public void SetContentsOfCellFormulaTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            Formula B1 = new Formula("A1*2");
+            Formula C1 = new Formula("A1*B1");
+          
+            ss.SetContentsOfCell("B1", "=A1*2");
+            ss.SetContentsOfCell("C1", "=A1*B1");
+
+            //sets should be equal
+            Assert.IsTrue(new HashSet<string> { "A1", "B1", "C1" }.SetEquals((HashSet<string>)ss.SetContentsOfCell("A1", "2.0")));
+            Assert.IsTrue(ss.GetCellContents("A1").Equals(2.0));
+            Assert.IsTrue(ss.GetCellContents("B1").Equals(B1));
+        }
+        [TestMethod]
+        public void SetContentsOfCellFormulaTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            Formula B1 = new Formula("A1*2");
+            Formula C1 = new Formula("A1*B1");
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("B1", "=A1*2");
+            ss.SetContentsOfCell("C1", "=A1*B1");
+
+            //sets should be equal
+            Assert.IsTrue(new HashSet<string> { "A1", "B1", "C1" }.SetEquals((HashSet<string>)ss.SetContentsOfCell("A1", "1.0")));
+            Assert.IsTrue(ss.GetCellContents("A1").Equals(1.0));
+            Assert.IsTrue(ss.GetCellContents("B1").Equals(B1));
+        }
+
+        [TestMethod]
+        public void SetContentsOfCellFormulaTest3()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            Formula B1 = new Formula("A1*2");
+            Formula C1 = new Formula("A1*B1");
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("B1", "=A1*2");
+            ss.SetContentsOfCell("C1", "=A1*B1");
+            Formula D1 = new Formula("A1*2-A1*B1");
+            ss.SetContentsOfCell("D1", "=A1*B1");
+
+            //sets should be equal
+            Assert.IsTrue(new HashSet<string> { "A1", "B1", "C1", "D1" }.SetEquals(
+                (HashSet<string>)ss.SetContentsOfCell("A1", "1.0")));
+            Assert.IsTrue(ss.GetCellContents("A1").Equals(1.0));
+            Assert.IsTrue(ss.GetCellContents("B1").Equals(B1));
+        }
+     
+
+
+
+        /// <summary>
+        /// A1 depends on B1 and B1 depends on A1 in this test
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
+        public void CircularExceptionTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            Formula A1 = new Formula("2 + B1");
+            Formula B1 = new Formula("2 + A1");
+
+            ss.SetContentsOfCell("A1", "=A1");
+        
+
+        }
+
+        /// <summary>
+        /// A1 contains A1
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
+        public void CircularExceptionTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            Formula A1 = new Formula("2+3+A1");
+            ss.SetContentsOfCell("A1", "=A1");
+        }
+
+        /// <summary>
+        ///Test adding contents into cells and then changing cells values
+        ///This intial test just makes sure that intial set up is correct 
+        ///wit out replacing anythin
+        /// </summary>
+        [TestMethod]
+
+        public void ChangeCellTest1()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            Formula A2 = new Formula("A1");
+            Formula B1 = new Formula("A1 + A2");
+            Formula B2 = new Formula("B1 + 2");
+
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("A2", "=A1");
+            ss.SetContentsOfCell("B1", "=A1 + A2");
+            ss.SetContentsOfCell("B2", "=B1 + 2");
+
+            //tests all cell are correct
+            Assert.IsTrue(new HashSet<string> { "B2" }.SetEquals(
+              ss.SetContentsOfCell("B2", "=B1 + 2")));
+            Assert.IsTrue(new HashSet<string> { "B1", "B2" }.SetEquals(
+              ss.SetContentsOfCell("B1", "=A1 + A2")));
+            Assert.IsTrue(new HashSet<string> { "A1", "A2", "B1", "B2" }.SetEquals(
+              ss.SetContentsOfCell("A1", "3.0")));
+            Assert.IsTrue(new HashSet<string> { "B1", "A2", "B2" }.SetEquals(
+              ss.SetContentsOfCell("A2", "=A1")));
+
+        }
+        /// <summary>
+        ///Test adding contents into cells and then changing cells values
+        ///change B1 content to a double should now only be dependent
+        ///on itself
+
+        /// </summary>
+        [TestMethod]
+
+        public void ChangeCellTest2()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            Formula A2 = new Formula("A1");
+            Formula B1 = new Formula("A1 + A2");
+            Formula B2 = new Formula("B1 + 2");
+
+            ss.SetContentsOfCell("A1", "2.0");
+            ss.SetContentsOfCell("A2", "=A1");
+            ss.SetContentsOfCell("B1", "=A1 + A2");
+            ss.SetContentsOfCell("B2", "=B1 + 2");
+
+            ss.SetContentsOfCell("A2", "3.0");
+            //formula in A2 removed so a2 is no longer dependent on A1
+            Assert.IsTrue(new HashSet<string> { "A1", "B1", "B2" }.SetEquals(
+                 ss.SetContentsOfCell("A1", "3.0")));
+
+            ss.SetContentsOfCell("B1", "3.0");
+            //B1 is changed to a double it is no longer of a dependent of A1 and A2
+            //here nothing no longer is depedent on A
+            Assert.IsTrue(new HashSet<string> { "A1" }.SetEquals(
+                ss.SetContentsOfCell("A1", "3.0")));
+            //Wait!!!
+            Assert.IsTrue(new HashSet<string> { "B2" }.SetEquals(
+                ss.SetContentsOfCell("B2", "=B1 + 2")));
+            //B2 is still dependent on B1
+            Assert.IsTrue(new HashSet<string> { "B1", "B2" }.SetEquals(
+                ss.SetContentsOfCell("B1", "2.0")));
+        }
+
+        /// <summary>
+        /// This Test add ~9000 cells to a spreadsheat with each new cell
+        /// being dependent on the cell before at the ende test if the head
+        /// cell reutrns all dependents in the list.  I found that
+        /// this test will cause a stack over flow around 10000.  I found that this 
+        /// most likely due to the recursive method and an cell can't have more than
+        /// ~10000 cells dependent on it
+        /// </summary>
+
+        [TestMethod]
+        public void StressTest1()
+        {
+            HashSet<string> correctSetA = new HashSet<string>();
+            HashSet<string> correctSetB = new HashSet<string>();
+            Spreadsheet ss = new Spreadsheet();
+            //ss.SetContentsOfCell("A1", "2.0");
+            correctSetA.Add("A1");
+            correctSetB.Add("B1");
+            //add A2 - N B2 and B2 - N
+            for (int i = 2; i < 100; i++)
+            {
+                string cellA = "A" + i;
+                string F1 = "A" + (i - 1);
+                Formula formulaA = new Formula(F1);
+                ss.SetContentsOfCell(cellA, "="+F1);
+
+                string cellB = "B" + i;
+                string F2 = "B" + (i - 1);
+                Formula formulaB = new Formula(F2);
+                ss.SetContentsOfCell(cellB, "="+F2);
+
+                //add all the cells to the correctSet
+                correctSetA.Add(cellA);
+                correctSetB.Add(cellB);
+
+            }
+
+            Assert.IsTrue(correctSetA.SetEquals(ss.SetContentsOfCell("A1", "2.0")));
+            Assert.IsTrue(correctSetB.SetEquals(ss.SetContentsOfCell("B1", "2.0")));
+            //Assert.AreEqual(2, correctSet.Count);
+        }
+
+        /// <summary>
+        /// cell A0 has 0.0 A1 has A0+1 (1), A2 has A1 +1 (2) etc all the way up to i (10000)
+        /// 
+        /// </summary>
+
+        [TestMethod]
+        public void StressTest2()
+        {
+          
+            Spreadsheet ss = new Spreadsheet();
+
+            ss.SetContentsOfCell("A0", "0.0");
+            for (int i = 1; i < 1000; i++)
+            {
+                string cellA = "A" + i;
+                string F1 = "A" + (i - 1) + "+ 1";
+                Formula formulaA = new Formula(F1);
+                ss.SetContentsOfCell(cellA, "=" + F1);
+
+                Assert.AreEqual((double)i, ss.GetCellValue(cellA));
+            }
+        }
+
+        /// <summary>
+        /// adds the cells like in stress test2, but changes the contents of A0 to 1
+        /// (have to recaculate all cells) then. NOTE A STACK OVERFLOW ERROR OCCURS
+        /// IF i > 10000.  This I believe is due to to many dependencies(see stress test1)
+        /// </summary>
+
+        [TestMethod]
+        public void StressTest2b()
+        {
+
+            Spreadsheet ss = new Spreadsheet();
+
+            ss.SetContentsOfCell("A0", "0.0");
+            //add cells
+            for (int i = 1; i < 1000; i++)
+            {
+                string cellA = "A" + i;
+                string F1 = "A" + (i - 1) + "+ 1";
+                Formula formulaA = new Formula(F1);
+                ss.SetContentsOfCell(cellA, "=" + F1);
+            }
+            ss.SetContentsOfCell("A0", "1.0");
+            for (int i = 0; i < 1000; i++)
+            {
+                string cellA = "A" + i;
+                Assert.AreEqual((double)i+1, ss.GetCellValue(cellA));
+            }
+        }
+
+        /// <summary>
+        ///This test to that after a cicular exception is found that
+        ///the contents of a cell were not changed
+        /// </summary>
+        [TestMethod]
+
+        public void CircularExceptionTest3()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            Formula A2 = new Formula("A2");
+
+            ss.SetContentsOfCell("A2", "test");
+            //A1 id dependent on two (legal)
+            ss.SetContentsOfCell("A1", "=A2");
+
+            try
+            {
+                //this will cause a circular dependency
+                Formula A1 = new Formula("2+3+A1");
+                ss.SetContentsOfCell("A1", "=A1");
+            }
+            catch (CircularException)
+            {
+                //A1 should have "A2" as its contents
+                Assert.AreEqual(A2, ss.GetCellContents("A1"));
+
+            }
+        }
+        [TestMethod()]
+        public void Test19()
+        {
+            Spreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("B1", "");
+            Assert.IsFalse(s.GetNamesOfAllNonemptyCells().GetEnumerator().MoveNext());
+        }
+
+    }
+
+
+
+
+
+}
+

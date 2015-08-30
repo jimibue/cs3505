@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoggleServer", "BoggleServer\BoggleServer.csproj", "{31597B96-4CC9-452F-9774-4CBF7ED3DC88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Resources", "Resources\Resources.csproj", "{627488FE-C3F4-402B-A3FF-08EECFB47017}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoggleClientModel", "BoggleClientModel\BoggleClientModel.csproj", "{5A315A66-B837-4A81-9F73-8CF9EA36CB50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoggleClientView", "ChatClientView\BoggleClientView.csproj", "{D358CCB2-B189-470F-83A4-FC28E3EE5E29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Launcher", "Launcher\Launcher.csproj", "{EED78D02-BC70-4E77-B261-2DC96676B0AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoggleServerUnitTests", "BoggleServerUnitTests\BoggleServerUnitTests.csproj", "{1E3BB4FF-917F-4DD8-AAD9-11462E481E0A}"
+EndProject
+Global
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{31597B96-4CC9-452F-9774-4CBF7ED3DC88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31597B96-4CC9-452F-9774-4CBF7ED3DC88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31597B96-4CC9-452F-9774-4CBF7ED3DC88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31597B96-4CC9-452F-9774-4CBF7ED3DC88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{627488FE-C3F4-402B-A3FF-08EECFB47017}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{627488FE-C3F4-402B-A3FF-08EECFB47017}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{627488FE-C3F4-402B-A3FF-08EECFB47017}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{627488FE-C3F4-402B-A3FF-08EECFB47017}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A315A66-B837-4A81-9F73-8CF9EA36CB50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A315A66-B837-4A81-9F73-8CF9EA36CB50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A315A66-B837-4A81-9F73-8CF9EA36CB50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A315A66-B837-4A81-9F73-8CF9EA36CB50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D358CCB2-B189-470F-83A4-FC28E3EE5E29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D358CCB2-B189-470F-83A4-FC28E3EE5E29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D358CCB2-B189-470F-83A4-FC28E3EE5E29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D358CCB2-B189-470F-83A4-FC28E3EE5E29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EED78D02-BC70-4E77-B261-2DC96676B0AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EED78D02-BC70-4E77-B261-2DC96676B0AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EED78D02-BC70-4E77-B261-2DC96676B0AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EED78D02-BC70-4E77-B261-2DC96676B0AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E3BB4FF-917F-4DD8-AAD9-11462E481E0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E3BB4FF-917F-4DD8-AAD9-11462E481E0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E3BB4FF-917F-4DD8-AAD9-11462E481E0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E3BB4FF-917F-4DD8-AAD9-11462E481E0A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

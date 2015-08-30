@@ -1,0 +1,26 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using BB;
+using BoggleServer;
+using System.Threading;
+
+namespace ChatClientView
+{
+    public class Program
+    {
+        static void Main(string[] args)
+        {
+
+            new BoggleServer.BoggleServer(20, "..\\..\\..\\Resources\\Libraries\\dictionary.txt", "LAAYVIXZEOHOSMEN");
+            new Thread(() => ChatClientView.Main()).Start();
+            new Thread(() => ChatClientView.Main()).Start();
+            new Thread(() => ChatClientView.Main()).Start();
+            new Thread(() => ChatClientView.Main()).Start();
+         
+      
+        }
+    }
+}

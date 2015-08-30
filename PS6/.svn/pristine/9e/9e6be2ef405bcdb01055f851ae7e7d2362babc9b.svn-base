@@ -1,0 +1,13 @@
+﻿Author James Yeates
+Date 9/27/2014
+
+THOUGHTS, IDEAS, NOTES, ETC
+This soultion does not handle values yet just handles the contents of the cell and keeps track
+of the spreadsheets cells depndencies.  I noticed that a stack overflow occured when a cell
+had about 10000 dependencies.  I think this comes from the recursive call but am not 100% sure.
+
+
+Changes needed for PS5
+	Names of cells -(from AbstracSpreedSheet documentation)
+		-One or more letters followed by one or more numbers
+		-and must satisfy is valid predicate. ^[a-zA-Z]+[0-9]+$

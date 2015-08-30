@@ -1,0 +1,271 @@
+﻿///CS3500 PS6 Author James Yeates
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using SS;
+using System.Text.RegularExpressions;
+
+//Version 1.0  10/31/2014 - The GUI is set up and working with basic functions.  Design is good.  Things that need to be worked On
+//-cleaning code, more helper methods.
+//-a way to clear a cell (cntrl-x)
+//backspace is not working esspically in the case when I erase all of the contents. cell won't clear
+//error handling and making it look good.
+//still have a bug in ps5 not handling circular exceptions well
+//key preveiw property
+
+namespace SpreadsheetGUI
+{
+    public partial class SpreadsheetGUI : Form
+    {
+       
+        /// <summary>
+        /// 
+        /// </summary>
+        private int row;
+        /// <summary>
+        /// 
+        /// </summary>
+        private int col;
+        /// <summary>
+        /// Model view of the spreadsheet
+        /// </summary>
+        AbstractSpreadsheet SSModel;
+      
+        private bool cellChanged;
+
+        public SpreadsheetGUI()
+        {
+            this.KeyPreview = true;
+
+            SSModel = new Spreadsheet(s => Regex.IsMatch(s, @"^[a-zA-Z][1-9][0-9]?$"), s => s.ToUpper(), "ps6");
+            cellChanged = false;
+            InitializeComponent();
+
+            // This an example of registering a method so that it is notified when
+            // an event happens.  The SelectionChanged event is declared with a
+            // delegate that specifies that all methods that register with it must
+            // take a SpreadsheetPanel as its parameter and return nothing.  So we
+            // register the displaySelection method below.
+
+            // This could also be done graphically in the designer, as has been
+            // demonstrated in class.
+            spreadsheetPanel1.SelectionChanged += displaySelection;
+            spreadsheetPanel1.SetSelection(0, 0);
+            textBox_cellName.Text = "A1";
+        }
+
+        // Every time the selection changes, this method is called with the
+        // Spreadsheet as its parameter.  We display the current time in the cell.
+
+        private void displaySelection(SpreadsheetPanel ss)
+        {
+            int newRow, newCol;
+            String value;
+            // if a cell has been updated then add it to the model and
+            //update the gui
+            if(cellChanged)
+            {
+                updateGUI(row, col);
+            }
+            cellChanged = false;
+            //get the newly selected cell
+            ss.GetSelection(out newCol, out newRow);
+            ss.GetValue(newCol, newRow, out value);
+            textBox_value.Text = value;
+
+            //get newName
+            string name = getCellName(newRow, newCol);
+            textBox_cellName.Text = name;
+
+            //SSModel.SetContentsOfCell(name, textBox_value.Text);
+            textBox_content.Text = SSModel.GetCellContents(name).ToString();
+            
+            //save cells postions
+            row = newRow;
+            col = newCol;
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            bool arrowPressd = false;
+
+            if (keyData == Keys.Up && row > 0)
+            {
+                if (cellChanged)
+                    updateGUI(row, col);
+                row -= 1;
+                arrowPressd = true;
+
+            }
+            if (keyData == Keys.Down && row < 99)
+            {
+                if (cellChanged)
+                    updateGUI(row, col);
+                row += 1;
+                arrowPressd = true;
+
+            }
+
+            if (keyData == Keys.Right && col < 26)
+            {
+                if (cellChanged)
+                    updateGUI(row, col);
+                col += 1;
+                arrowPressd = true;
+            }
+            if (keyData == Keys.Left && col > 0)
+            {
+                if (cellChanged)
+                    updateGUI(row, col);
+                col -= 1;
+                arrowPressd = true;
+
+            }
+            if (arrowPressd)
+            {
+                string value = "";
+                cellChanged = false;
+                //get the newly selected cell
+                spreadsheetPanel1.SetSelection(col, row);
+                spreadsheetPanel1.GetSelection(out col, out row);
+                spreadsheetPanel1.GetValue(col, row, out value);
+                textBox_value.Text = value;
+
+                //get newName
+                string name = getCellName(row, col);
+                textBox_cellName.Text = name;
+
+                //SSModel.SetContentsOfCell(name, textBox_value.Text);
+                textBox_content.Text = SSModel.GetCellContents(name).ToString();
+
+            }
+
+            return false;
+        }
+
+        // Deals with the New menu
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Tell the application context to run the form on the same
+            // thread as the other forms.
+            DemoApplicationContext.getAppContext().RunForm(new SpreadsheetGUI());
+        }
+
+        // Deals with the Close menu
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+        // Deals with the save menu
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        // Deals with the open menu
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void valueTextBox_KeyPressed(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)(Keys.Enter))
+            {
+                if (cellChanged)
+                {
+                    updateGUI(row, col);
+                }
+            }
+            else
+            {
+                if (e.KeyChar == (char)Keys.Back) { }
+
+                cellChanged = true;
+                spreadsheetPanel1.SetValue(col, row, textBox_content.Text + e.KeyChar);
+            }
+            //spreadsheetPanel1.GetValue(col, row, out cellString);
+
+        }
+
+        /// <summary>
+        /// return the name of the cell. ie A1
+        /// </summary>
+        /// <returns>string-name of the cell</returns>
+        private string getCellName(int row, int col)
+        {
+            return "" + (char)(col + 65) + (row + 1);
+        }
+        /// <summary>
+        /// gets the contents of the cell
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="col"></param>
+        /// <returns></returns>
+        private string getCellContents(int row, int col)
+        {
+            string cell = getCellName(row, col);
+            return SSModel.GetCellContents(cell).ToString();
+        }
+        private void spreadsheetPanel1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            //string cellString = "";
+            //if (e.KeyChar == (char)Keys.Back)
+            //{
+            //    if (cellString.Length > 0)
+            //        cellString = cellString.Substring(0, cellString.Length - 1);
+            //}
+            //else
+            //    cellString += e.KeyChar;
+            //spreadsheetPanel1.SetValue(col, row, cellString);
+            //spreadsheetPanel1.GetValue(col, row, out cellString);
+            ////Content_TextBox1.Text = cellString;
+
+        }
+
+        private void updateGUI(int row, int col)
+        {
+            try
+            {
+
+                SSModel.SetContentsOfCell(getCellName(row, col), textBox_content.Text);
+                textBox_content.Text = getCellContents(row, col);
+                textBox_value.Text = SSModel.GetCellValue(getCellName(row, col)).ToString();
+                spreadsheetPanel1.SetValue(col, row, textBox_value.Text);
+                cellChanged = false;
+            }catch(Exception e)
+            {
+                spreadsheetPanel1.SetValue(col, row, "Error");
+                textBox_content.Text = getCellContents(row, col)+"!!!!";
+                textBox_value.Text = "Error1";
+            
+                cellChanged = false;
+            }
+          
+        }
+
+        private void updateModel(int row, int col)
+        {
+            SSModel.SetContentsOfCell(getCellName(row, col), textBox_content.Text);
+        }
+
+        private void infoMenuStripItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("About my program yo!!");
+        }
+
+        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+
+
+    }
+}

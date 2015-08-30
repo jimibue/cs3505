@@ -1,0 +1,13 @@
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\bin\Debug\Launcher.exe.config
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\bin\Debug\Launcher.exe
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\bin\Debug\Launcher.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\bin\Debug\BoggleClient.exe
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\bin\Debug\BoggleClientModel.dll
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\bin\Debug\BoggleServer.exe
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\bin\Debug\StringSocketOfficial.dll
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\bin\Debug\BoggleClientModel.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\bin\Debug\BoggleClient.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\bin\Debug\BoggleServer.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\obj\Debug\Launcher.csprojResolveAssemblyReference.cache
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\obj\Debug\Launcher.exe
+C:\Users\yeates\Visual Studio 2013\Projects\PS9\Launcher\obj\Debug\Launcher.pdb

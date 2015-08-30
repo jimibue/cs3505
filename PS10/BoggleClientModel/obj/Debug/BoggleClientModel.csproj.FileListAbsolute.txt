@@ -1,0 +1,6 @@
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleClientModel\bin\Debug\BoggleClientModel.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleClientModel\bin\Debug\BoggleClientModel.pdb
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleClientModel\bin\Debug\StringSocketOfficial.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleClientModel\obj\Debug\BoggleClientModel.csprojResolveAssemblyReference.cache
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleClientModel\obj\Debug\BoggleClientModel.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleClientModel\obj\Debug\BoggleClientModel.pdb

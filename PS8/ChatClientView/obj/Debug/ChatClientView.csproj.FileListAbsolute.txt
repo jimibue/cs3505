@@ -1,0 +1,12 @@
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\bin\Debug\ChatClientView.exe.config
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\bin\Debug\ChatClientView.exe
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\bin\Debug\ChatClientView.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\bin\Debug\BoggleClientModel.dll
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\bin\Debug\StringSocketOfficial.dll
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\bin\Debug\BoggleClientModel.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\obj\Debug\ChatClientView.csprojResolveAssemblyReference.cache
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\obj\Debug\ChatClientView.Form1.resources
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\obj\Debug\ChatClientView.Properties.Resources.resources
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\obj\Debug\ChatClientView.csproj.GenerateResource.Cache
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\obj\Debug\ChatClientView.exe
+C:\Users\yeates\Visual Studio 2013\Projects\PS8\ChatClientView\obj\Debug\ChatClientView.pdb

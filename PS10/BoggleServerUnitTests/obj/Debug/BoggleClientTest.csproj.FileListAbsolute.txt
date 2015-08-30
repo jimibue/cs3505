@@ -1,0 +1,12 @@
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\bin\Debug\BoggleServerUnitTests.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\bin\Debug\BoggleServerUnitTests.pdb
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\bin\Debug\BoggleClient.exe
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\bin\Debug\BoggleClientModel.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\bin\Debug\BoggleServer.exe
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\bin\Debug\StringSocketOfficial.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\bin\Debug\BoggleClientModel.pdb
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\bin\Debug\BoggleClient.pdb
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\bin\Debug\BoggleServer.pdb
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\obj\Debug\BoggleClientTest.csprojResolveAssemblyReference.cache
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\obj\Debug\BoggleServerUnitTests.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\BoggleServerUnitTests\obj\Debug\BoggleServerUnitTests.pdb

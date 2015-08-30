@@ -1,0 +1,388 @@
+﻿///CS3500 PS6 Author James Yeates
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using SS;
+using SpreadsheetUtilities;
+using System.Text.RegularExpressions;
+
+//Version 1.0  10/31/2014 - The GUI is set up and working with basic functions.  Design is good.  Things that need to be worked On
+//-cleaning code, more helper methods.
+//-a way to clear a cell (cntrl-x)
+//backspace is not working esspically in the case when I erase all of the contents. cell won't clear
+//error handling and making it look good.
+//still have a bug in ps5 not handling circular exceptions well
+//key preveiw property
+
+//Version 1.1 11/1/14
+//-cleaned code with help private method updateModel and setRowAndCol and cleaned up arrowkey processing
+//-added feature to not allow a user to enter a invalid formula or cause a circular dependency.  User must
+//resolve this problem before any thing can proceed, probably should not allow a user to save if there is 
+// this problem?
+// -added basic open functionality opened a process the basic xml file correctly. Except the way my class is it won't
+//  allowed a bad file to be uploaded, but this is probably desirable 
+// -found a wierd bug that I can't duplicate at the start don't know what I did.
+//- over all looking good need to start debugging and do more formal testing.
+
+//Version 1.2 11/3/14
+//-fixed two bug in ps5 both had to do with set contents of a cell to an empty string
+// to remove them from graph and dict. Also make sure dependents of cell that was changed
+// to an empty string was set to a Formulla error
+//-add cntrl-x funtion to clear cell in gui and model
+//-spreadsheet dependent cells now updates correctly when values are changed
+//-Not sure if the circular expcetion bug is fixed. it passed the test but I didn't change anything
+//-fixed bug where arrow keys were causing an exception at the lower level.
+//-there is still "off by one error" that occurs rarely with cntrl-x key command
+
+namespace SpreadsheetGUI
+{
+    public partial class SpreadsheetGUI : Form
+    {
+       
+        /// <summary>
+        /// keeps track of the previous row
+        /// </summary>
+        private int row;
+        /// <summary>
+        /// keeps track of the previous col
+        /// </summary>
+        private int col;
+        /// <summary>
+        /// Model view of the spreadsheet
+        /// </summary>
+        AbstractSpreadsheet SSModel;
+      
+        /// <summary>
+        /// Keeps track if a cell has been changed
+        /// </summary>
+        private bool cellChanged;
+        /// <summary>
+        /// represent a simple graphical Spreadsheet...Details and special features should go here
+        /// </summary>
+        public SpreadsheetGUI()
+        {
+            
+
+            SSModel = new Spreadsheet(s => Regex.IsMatch(s, @"^[a-zA-Z][1-9][0-9]?$"), s => s.ToUpper(), "ps6");
+            cellChanged = false;
+            InitializeComponent();
+
+            // This an example of registering a method so that it is notified when
+            // an event happens.  The SelectionChanged event is declared with a
+            // delegate that specifies that all methods that register with it must
+            // take a SpreadsheetPanel as its parameter and return nothing.  So we
+            // register the displaySelection method below.
+
+            // This could also be done graphically in the designer, as has been
+            // demonstrated in class.
+            spreadsheetPanel1.SelectionChanged += displaySelection;
+            spreadsheetPanel1.SetSelection(0, 0);
+            textBox_cellName.Text = "A1";
+        }
+
+        // Every time the selection changes, this method is called with the
+        // Spreadsheet as its parameter.  We display the current time in the cell.
+
+        private void displaySelection(SpreadsheetPanel ss)
+        {
+            bool succesfull = true;
+            int newRow, newCol;
+            //String value;
+            // if a cell has been updated then add it to the model and
+            //update the gui
+            if(cellChanged)
+            {
+                succesfull = updateModel(row, col);
+            }
+            //if model was succesfully changed than make changes to the GUI
+            if (succesfull)
+            {
+                //get the newly selected cell
+                ss.GetSelection(out newCol, out newRow);
+                displayCurrentCell(newCol, newRow);
+
+                //save cells' postion
+                row = newRow;
+                col = newCol;
+            }
+            //model was not succesfull updated keep user on the incorrect cell
+            else
+            {
+                spreadsheetPanel1.SetSelection(col, row);
+            }
+        }
+        /// <summary>
+        /// this controls the functionalty of the arrow keys
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="keyData"></param>
+        /// <returns></returns>
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            //
+            if (keyData == (Keys.Control | Keys.X))
+            {
+                textBox_content.Text = "";
+                updateModel(row, col);
+                spreadsheetPanel1.SetSelection(col, row);
+                return true;
+            }
+            bool succesfull = true;
+            //see if a arrow was pressed and if bounds are ok
+            if (keyData == Keys.Up && row > 0 || keyData == Keys.Down && row < 98 ||
+                keyData == Keys.Right && col < 25 || keyData == Keys.Left && col > 0)
+            {
+                //
+                if (cellChanged) { 
+                    //will be set to false if something goes wrong
+                    succesfull = updateModel(row, col);
+                }
+                if (succesfull)
+                {
+                    if (keyData == Keys.Up) { row -= 1; }
+                    else if (keyData == Keys.Down) { row += 1; }
+                    else if (keyData == Keys.Right) { col += 1; }
+                    else if (keyData == Keys.Left) { col -= 1; }
+
+                    displayCurrentCell(col,row);
+                   
+                }
+            }
+            return false;
+        }
+        /// <summary>
+        /// used to update the GUI to show the appropriate values for the cell
+        /// that is Currently selected
+        /// </summary>
+        /// <param name="col"></param>
+        /// <param name="row"></param>
+
+        private void displayCurrentCell(int col, int row)
+        {
+            textBox_content.Focus();//brings cursor to text box already there?
+            textBox_content.SelectionStart = textBox_content.Text.Length;//sets cursor at the end of the word
+            string value = "";
+            cellChanged = false;
+            
+            //get the newly selected cell
+            spreadsheetPanel1.SetSelection(col, row);
+            spreadsheetPanel1.GetValue(col, row, out value);
+            textBox_value.Text = value;
+
+            //get newName
+            string name = getCellName(row, col);
+            textBox_cellName.Text = name;
+
+            //SSModel.SetContentsOfCell(name, textBox_value.Text);
+            textBox_content.Text = SSModel.GetCellContents(name).ToString();
+        }
+        
+         /// <summary>
+       /// Deals with the new menu.  Opens a new spreadsheet while keeping the previous spreadsheet
+       /// open
+       /// </summary>
+       /// <param name="sender"></param>
+       /// <param name="e"></param>
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Tell the application context to run the form on the same
+            // thread as the other forms.
+            DemoApplicationContext.getAppContext().RunForm(new SpreadsheetGUI());
+        }
+
+        /// <summary>
+        /// deals with the close menu. Checks if a changed has been made
+        /// if so as the user if they want to save otherwise closes the program.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+            if (SSModel.Changed)
+            {
+                //with help from msdn documentation
+                //ask to save program
+                String message = "Would you like to save before closing?";
+                var result = MessageBox.Show(message, "Closing", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (result == DialogResult.Yes)
+                    saveFile();
+            }
+            
+        }
+   
+        // Deals with the save menu
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveFile();
+        }
+
+        private void saveFile()
+        {
+            //note Filter set up in Form1.cs[Design]
+            saveFileDialog1.ShowDialog();
+            SSModel.Save(saveFileDialog1.FileName);
+
+        }
+            // Deals with the open menu
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            //check if orignal file has been changed if so ask if they want to save.
+            
+            
+            //With help from www.dotnetperls.com
+            //show dialog
+            DialogResult result = openFileDialog1.ShowDialog();
+            //check result
+            if (result == DialogResult.OK)
+            {
+                string fileName = openFileDialog1.FileName;
+                try
+                {
+                    //make new spreadsheet
+                    SSModel = new Spreadsheet(fileName, s => Regex.IsMatch(s, @"^[a-zA-Z][1-9][0-9]?$"), s => s.ToUpper(), "ps6");
+                    //fill in the cells in the GUI
+                    foreach (String cellName in SSModel.GetNamesOfAllNonemptyCells())
+                    {
+                        setRowAndCol(cellName);
+                        spreadsheetPanel1.SetValue(col, row, SSModel.GetCellValue(cellName).ToString());
+                    }
+
+                }catch(Exception ex )
+                {
+                    MessageBox.Show("An error occured:\n "+ ex.Message);
+                }
+            }
+        }
+
+        private void valueTextBox_KeyPressed(object sender, KeyPressEventArgs e)
+        {
+            bool succesfull = true;
+            if (e.KeyChar == (char)(Keys.Enter))
+            {
+                if (cellChanged)
+                {
+                    //will be set to false if something goes wrong
+                    succesfull = updateModel(row, col);
+                }
+            }
+            
+            else
+            {
+                if (e.KeyChar == (char)Keys.Back) 
+                {
+                    if(textBox_content.Text.Length > 0)
+                        spreadsheetPanel1.SetValue(col, row, textBox_content.Text.Substring(0,textBox_content.Text.Length-1));
+                }
+                else {
+                    spreadsheetPanel1.SetValue(col, row, textBox_content.Text + e.KeyChar);
+                }
+                cellChanged = true;
+              
+            }
+            //spreadsheetPanel1.GetValue(col, row, out cellString);
+
+        }
+
+        /// <summary>
+        /// return the name of the cell. ie A1
+        /// </summary>
+        /// <returns>string-name of the cell</returns>
+        private string getCellName(int row, int col)
+        {
+            return "" + (char)(col + 65) + (row + 1);
+        }
+        /// <summary>
+        /// given a cell name set the row and col. IE given A1 
+        /// row will be set to 0 and col will be set to 0
+        /// </summary>
+        
+        private void setRowAndCol(String cellName)
+        {
+            col = (int)cellName[0] - 65;
+            //get the number
+            string rowString = cellName.Substring(1,cellName.Length-1);
+            row = Int16.Parse(rowString) - 1;
+        }
+        /// <summary>
+        /// gets the contents of the cell
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="col"></param>
+        /// <returns></returns>
+        private string getCellContents(int row, int col)
+        {
+            string cell = getCellName(row, col);
+            return SSModel.GetCellContents(cell).ToString();
+        }
+        private void updateSpreadsheetGUI()
+        {
+            foreach(string cell in SSModel.GetNamesOfAllNonemptyCells())
+            {
+                setRowAndCol(cell);
+                spreadsheetPanel1.SetValue(col, row, SSModel.GetCellValue(cell).ToString());
+
+            }
+        }
+
+
+
+        private bool updateModel(int row, int col)
+        {
+            try
+            {
+                SSModel.SetContentsOfCell(getCellName(row, col), textBox_content.Text);
+                updateSpreadsheetGUI();
+                textBox_content.Text = getCellContents(row, col);
+                textBox_value.Text = SSModel.GetCellValue(getCellName(row, col)).ToString();
+                spreadsheetPanel1.SetValue(col, row, textBox_value.Text);
+                cellChanged = false;
+                return true;
+            }
+            catch (FormulaFormatException e)
+            {
+                // SSModel.SetContentsOfCell(getCellName(row, col), "");
+                // textBox_content.Text = "";
+                MessageBox.Show(textBox_content.Text.Substring(1) + " is an invalid formula please change it");
+                return false;
+                //cellChanged = false;
+            }
+
+
+            catch (CircularException e)
+            {
+                MessageBox.Show(textBox_content.Text.Substring(1) + "contains a circular exception please change it");
+                return false;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(textBox_content.Text.Substring(0) +e.Message+ " is an invalid formula please change it!\n" + textBox_content.Text);
+                return false;
+            }
+        }
+
+        private void infoMenuStripItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("About my program yo!!");
+        }
+
+        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+
+
+    }
+}

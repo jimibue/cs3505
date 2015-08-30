@@ -1,0 +1,297 @@
+﻿using BB;
+using CustomNetworking;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+
+namespace BoggleServer
+{
+
+    class BoggleGame
+    {
+        /// <summary>
+        /// One of the two players in this game.
+        /// </summary>
+        private Player player1, player2;
+
+        /// <summary>
+        /// The remaining time. This is initially set to the number of seconds 
+        /// the game should last, and decremented as time passes.
+        /// </summary>
+        private int time;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private BoggleBoard board;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private HashSet<string> dictionary;
+
+        /// <summary>
+        /// The set of common words played by both players.
+        /// </summary>
+        private HashSet<string> commonWords;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private readonly Object scoreLock = new Object();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool playersConnected =true;
+        
+        public BoggleGame(Player one, Player two, int time, string letters, ref HashSet<string> dictionary)
+        {
+            this.player1 = one;
+            this.player2 = two;
+
+            // Create the board.
+            if (letters == "")
+                board = new BoggleBoard();
+            else
+                board = new BoggleBoard(letters);
+            
+            this.dictionary = dictionary;
+
+            commonWords = new HashSet<string>();
+
+            player1.ss.BeginSend("START " + board.ToString() + " " + time.ToString() + " " + player2.name + "\n", (ee, pp) => { }, player1.ss);//player socket as payload ?
+            player1.ss.BeginReceive(WordReceived, player1);
+            player2.ss.BeginSend("START " + board.ToString() + " " + time.ToString() + " " + player1.name + "\n", (ee, pp) => { }, player2.ss);
+            player2.ss.BeginReceive(WordReceived, player2);
+
+            Thread timer = new Thread(updateClock);
+            timer.Start(time);
+        }
+
+        /// <summary>
+        /// This callback method is called whenever a player sends a word.
+        /// </summary>
+        private void WordReceived(string word, Exception e, object payload)
+        {
+            Player p = (Player)payload;
+            bool isPlayer1 = player1.Equals(p);
+            if (isDisconnected(word, e, isPlayer1))
+                return;
+
+            if (time > 0)
+            {
+                if (word.StartsWith("WORD ") && word.Substring(5).Trim().Length > 0 && time > 0)
+                {
+                    word = word.Substring(5).ToUpper().Trim();
+
+                    Console.WriteLine(p.name + " sent " + word);
+
+                    // Figure out which player sent the word, and process it.
+                    if (isPlayer1)
+                        processWord(word, player1, player2);
+                    else
+                        processWord(word, player2, player1);
+                }
+                else
+                {
+                    p.ss.BeginSend("IGNORING " + word + "\n", (ee, pp) => { }, p);
+                }
+
+                // Listen for more words.
+                p.ss.BeginReceive(WordReceived, p);
+            }
+         
+        }
+
+        private bool isDisconnected(string word, Exception e, bool isPlayer1)
+        {
+            if ((word == null && e == null) || e != null)
+            {
+                playersConnected = false; 
+                if (isPlayer1)
+                {
+                    player2.ss.BeginSend("TERMINATED\n", (ee, pp) => { }, player2);
+                    player2.ss.Close();
+                }
+                else
+                {
+                    player1.ss.BeginSend("TERMINATED\n", (ee, pp) => { }, player1);
+                    player1.ss.Close();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void processWord(string word, Player currentPlayer, Player otherPlayer)
+        {
+            lock (scoreLock)
+            {
+                // Check if the word is legal.
+                if (isLegalWord(word))
+                {
+                    // Check if the other player has already played the word.
+                    if (otherPlayer.legalWords.Contains(word))
+                    {
+                        // Remove the word
+                        otherPlayer.legalWords.Remove(word);
+
+                        // Add it to common words
+                        commonWords.Add(word);
+
+                        // Reduce the score
+                        otherPlayer.score -= getWordScore(word);
+                    }
+                    // Otherwise, the other player hasn't played the word.
+                    else
+                    {
+                        // Make sure current player hasn't already played the word, and that it's not a common word.
+                        if (!currentPlayer.legalWords.Contains(word) && !commonWords.Contains(word))
+                        {
+                            currentPlayer.legalWords.Add(word);
+
+                            currentPlayer.score += getWordScore(word);
+                        }
+                        else
+                            return;
+                    }
+                }
+                // Otherwise, the word is illegal.
+                else
+                {
+                    // Make sure the player hasn't already played the word.
+                    if (!currentPlayer.illegalWords.Contains(word))
+                    {
+                        // Add it to the list of illegal words.
+                        currentPlayer.illegalWords.Add(word);
+
+                        // Decrement the score.
+                        currentPlayer.score += -1;//can be -?
+                    }
+                    else
+                        return;
+                }
+
+                // Send the scores.
+                currentPlayer.ss.BeginSend("SCORE " + currentPlayer.score + " " + otherPlayer.score + "\n", (ee, pp) => { }, currentPlayer);
+                otherPlayer.ss.BeginSend("SCORE " + otherPlayer.score + " " + currentPlayer.score + "\n", (ee, pp) => { }, otherPlayer);
+
+            }
+        }
+
+        /// <summary>
+        /// Returns the point value of the given word.
+        /// </summary>
+        private int getWordScore(string word)
+        {
+            int length = word.Length;
+
+            if ((length == 3) || (length == 4))
+                return 1;
+            else if (length == 5)
+                return 2;
+            else if (length == 6)
+                return 3;
+            else if (length == 7)
+                return 5;
+            else
+                return 11;
+        }
+
+        private void updateClock(object startTime)
+        {
+            time = (int)startTime;
+
+            while (time >= 0 && playersConnected)
+            {
+                Console.WriteLine("here");
+                player1.ss.BeginSend("TIME " + time.ToString() + "\n", (ee, pp) => { }, this);
+                player2.ss.BeginSend("TIME " + time.ToString() + "\n", (ee, pp) => { }, this);
+                Thread.Sleep(1000);
+                time--;
+            }
+            
+            //send game over message ignore further com
+            if(playersConnected)
+                endGame();
+        }
+
+        private void endGame()
+        {
+            // Send final score.
+            player1.ss.BeginSend("SCORE " + player1.score + " " + player2.score + "\n", (ee, pp) => { }, player1);
+            player2.ss.BeginSend("SCORE " + player2.score + " " + player1.score + "\n", (ee, pp) => { }, player2);
+
+            bool notSent1 = true, notSent2 = true;
+
+            // Send the game summaries.
+            player1.ss.BeginSend(getSummaryString(player1, player2) + "\n", (ee, pp) => { notSent1 = false; }, player1);
+            // player1.ss.Close();
+            player2.ss.BeginSend(getSummaryString(player2, player1) + "\n", (ee, pp) => { notSent2 = false; }, player2);
+
+            while (notSent1 || notSent2)
+                Thread.Sleep(100);
+
+            // Close the sockets.
+            player1.ss.Close();
+            player2.ss.Close();
+        }
+
+        private string getSummaryString(Player currentPlayer, Player otherPlayer)
+        {
+            StringBuilder summary = new StringBuilder();
+            summary.Append("STOP");
+
+            // The current player's legal words:
+            summary.Append(" " + currentPlayer.legalWords.Count);
+
+            foreach (string word in currentPlayer.legalWords)
+                summary.Append(" " + word);
+
+            // The opponent's legal words:
+            summary.Append(" " + otherPlayer.legalWords.Count);
+
+            foreach (string word in otherPlayer.legalWords)
+                summary.Append(" " + word);
+
+            // The common words:
+            summary.Append(" " + commonWords.Count);
+
+            foreach (string word in commonWords)
+                summary.Append(" " + word);
+
+            // The current player's illegal words:
+            summary.Append(" " + currentPlayer.illegalWords.Count);
+
+            foreach (string word in currentPlayer.illegalWords)
+                summary.Append(" " + word);
+
+            // The opponent's illegal words:
+            summary.Append(" " + otherPlayer.illegalWords.Count);
+
+            foreach (string word in otherPlayer.illegalWords)
+                summary.Append(" " + word);
+
+            return summary.ToString();
+
+        }
+        private bool isLegalWord(string word)
+        {
+            //if the word is less than 3 characters, not valid
+            if (word.Length < 3)
+                return false;
+            //if it is not in the dictionary it is not valid
+            if (!dictionary.Contains(word))
+                return false;
+            //is it a valid word for the current game.
+            else return board.CanBeFormed(word);
+
+        }
+    }
+}

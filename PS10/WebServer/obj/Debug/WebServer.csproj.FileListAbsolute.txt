@@ -1,0 +1,16 @@
+C:\Users\yeates\Visual Studio 2013\Projects\PS10\WebServer\bin\Debug\WebServer.exe.config
+C:\Users\yeates\Visual Studio 2013\Projects\PS10\WebServer\bin\Debug\WebServer.exe
+C:\Users\yeates\Visual Studio 2013\Projects\PS10\WebServer\bin\Debug\WebServer.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS10\WebServer\bin\Debug\StringSocketOfficial.dll
+C:\Users\yeates\Visual Studio 2013\Projects\PS10\WebServer\obj\Debug\WebServer.csprojResolveAssemblyReference.cache
+C:\Users\yeates\Visual Studio 2013\Projects\PS10\WebServer\obj\Debug\WebServer.exe
+C:\Users\yeates\Visual Studio 2013\Projects\PS10\WebServer\obj\Debug\WebServer.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS10\WebServer\bin\Debug\MySql.Data.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\WebServer\bin\Debug\WebServer.exe.config
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\WebServer\obj\Debug\WebServer.exe
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\WebServer\obj\Debug\WebServer.pdb
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\WebServer\bin\Debug\WebServer.exe
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\WebServer\bin\Debug\WebServer.pdb
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\WebServer\bin\Debug\MySql.Data.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\WebServer\bin\Debug\StringSocketOfficial.dll
+C:\Users\yeates.USERS\Visual Studio 2013\Projects\PS10\WebServer\obj\Debug\WebServer.csprojResolveAssemblyReference.cache

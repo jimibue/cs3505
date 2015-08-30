@@ -1,0 +1,5 @@
+C:\Users\yeates\Visual Studio 2013\Projects\PS6\SSCodedUITestProject1\bin\Debug\SSCodedUITestProject1.dll
+C:\Users\yeates\Visual Studio 2013\Projects\PS6\SSCodedUITestProject1\bin\Debug\SSCodedUITestProject1.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS6\SSCodedUITestProject1\obj\Debug\SSCodedUITestProject1.csprojResolveAssemblyReference.cache
+C:\Users\yeates\Visual Studio 2013\Projects\PS6\SSCodedUITestProject1\obj\Debug\SSCodedUITestProject1.dll
+C:\Users\yeates\Visual Studio 2013\Projects\PS6\SSCodedUITestProject1\obj\Debug\SSCodedUITestProject1.pdb

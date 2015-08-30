@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FormulaEvaluator</name>
+    </assembly>
+    <members>
+        <member name="T:FormulaEvaluator.Evaluator">
+            <summary>
+            This class takes a math expression as a string and evaluates the result.  Accetable 
+            math operations are numbers (doubles accetpted but will be converted to ints). 
+            +, /, * -, 9, (, ), are excepted.  This program will throw an argument exception if
+            expresion is not correct. This program also accepts var the start with a letter and end
+            with a number ie a1 is accetepable a1a is not. 
+            
+            </summary>
+        </member>
+        <member name="F:FormulaEvaluator.Evaluator.theExp">
+            <summary>
+            
+            holds the value of the overall expresion
+            </summary>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.Evaluate(System.String,FormulaEvaluator.Evaluator.Lookup)">
+            <summary>
+             Performs basic math on expression given as a string.  Performs multiplication, division, addition, 
+             subtraction and  accepts parethesis.  This method also accepts varaibles given a delagate that recieves
+             a string and returns an int.  If the math equation is in illegal form.
+            </summary>
+            <param name="exp">String - math expresion ie "1+2 * (2+3)"</param>
+            <param name="variableEvaluator">Lookup delegate that reiceives a string and returns an int</param>
+            <returns>the value of the given math expresion as a integer</returns>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.DetermineAnswer(System.Collections.Generic.Stack{System.Int32},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            This helper method is called at the end after the expression has been parsed
+            and returns the final answer.  If the expression was not properly formatted 
+            an exception will be thrown
+            </summary>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+            <returns>the final andwer as an int</returns>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.ExpressionRecieved(System.Char,System.Collections.Generic.Stack{System.Int32},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            simple helper method that determines which math expression has been recieved 
+            and where it should go next
+            </summary>
+            <param name="expression">the current token</param>
+            <param name="valueStack">The value stack</param>
+            <param name="operationStack">the operation stack</param>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.CheckExpresion(System.String)">
+            <summary> this method takes in the token and determines if it is a legal character for this program
+            legal characters include (,),+,-,*,/ and letters and numbers.  This function also test if
+            a variable is in correct format which is 1 or more letters followed by 1 or more digits (numbers).
+            This method will throw an error if not correct form.
+            
+            </summary>
+            <param name="str">The expression to be checked</param>
+            <returns>"var" if the string is a correctly formatted character or the expresion</returns>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.isLetter(System.Char)">
+            <summary>
+            Determines wether a character is a Letter A-Z and a-z using ascii values
+            </summary>
+            <param name="c">a char</param>
+            <returns>true if c is a letter false otherwise</returns>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.isNumber(System.Char)">
+            <summary>
+            Determines wether a character is a number (0-9)
+            </summary>
+            <param name="c">a char</param>
+            <returns>true if c is (0-9) false otherwise</returns>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.RightParaenthesisRecieved(System.Collections.Generic.Stack{System.Int32},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            helper method for  when/if a right paraenthesis is recieved
+            </summary>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.addSubRecieved(System.Char,System.Collections.Generic.Stack{System.Int32},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            Called if current token is a + or -.  Will check to see if the next item on operation stack is
+            a + or minus if it is it will perform that operation. if it is * or / then the operation will be pushed
+            on the stack
+            </summary>
+             <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+            <param name="p">the current token either a + or -</param>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.intRecieved(System.Int32,System.Collections.Generic.Stack{System.Int32},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            Called when the current token is a double. If a * or / is on top the operation
+            stack do the math else just push the number on the Value stack
+            </summary>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+            <param name="number">the curent token being processed</param>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.doMath(System.Char,System.Collections.Generic.Stack{System.Int32},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            This helper method takes care of the math operation.  It will pop two values off the value stack and
+            will perform the operation it is given in the parameter and pop the operation stack.
+            </summary>
+            <param name="oper">the operation that needs to be performed +,-,/,*</param>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+        </member>
+        <member name="T:FormulaEvaluator.Evaluator.Lookup">
+             <summary>
+             Delegate, given a string value returns an int..
+            </summary>
+             <param name="v">string</param>
+             <returns>int</returns>
+        </member>
+    </members>
+</doc>

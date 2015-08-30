@@ -1,0 +1,234 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+
+
+
+namespace SpreadsheetUtilities
+{
+    /// <summary>
+    /// This class takes a math expression as a string and evaluates the result.  Accetable 
+    /// math operations are numbers (doubles accetpted but will be converted to ints). 
+    /// +, /, * -, 9, (, ), are excepted.  This program will throw an argument exception if
+    /// expresion is not correct. This program also accepts var the start with a letter and end
+    /// with a number ie a1 is accetepable a1a is not. 
+    /// 
+    /// Author  James Yeates
+    /// </summary>
+    public static class DoubleEvaluator
+    {
+        /// <summary>
+        /// Delegate, given a string value returns an int..
+        ///</summary>
+        /// <param name="v">string</param>
+        /// <returns>double</returns>
+        public delegate double Lookup(String v);
+
+
+
+        /// <summary>
+        /// This helper method is called at the end after the expression has been parsed
+        /// and returns the final answer.  If the expression was not properly formatted 
+        /// an exception will be thrown
+        /// </summary>
+        /// <param name="valueStack">the value stack</param>
+        /// <param name="operationStack">the operation stack</param>
+        /// <returns>the final answer as an double</returns>
+        private static double DetermineAnswer(Stack<double> valueStack, Stack<char> operationStack)
+        {
+            if (valueStack.Count == 1)
+                return valueStack.Pop();
+            // at this point valueStack must have 2 values and operationStack must have 1.
+            else
+                doMath(operationStack.Peek(), valueStack, operationStack);
+            return valueStack.Pop();
+        }
+        /// <summary>
+        /// simple helper method that determines which math expression has been recieved 
+        /// and where it should go next
+        /// </summary>
+        /// <param name="expression">the current token</param>
+        /// <param name="valueStack">The value stack</param>
+        /// <param name="operationStack">the operation stack</param>
+
+        private static void ExpressionRecieved(char expression, Stack<double> valueStack, Stack<char> operationStack)
+        {
+            if (expression == '(' || expression == '*' || expression == '/')
+                operationStack.Push(expression);
+
+            else if (expression == '+' || expression == '-')
+                addSubRecieved(expression, valueStack, operationStack);
+
+            else
+                RightParaenthesisRecieved(valueStack, operationStack);
+        }
+
+
+        /// <summary>
+        /// helper method for  when/if a right paraenthesis is recieved
+        /// </summary>
+        /// <param name="valueStack">the value stack</param>
+        /// <param name="operationStack">the operation stack</param>
+        private static void RightParaenthesisRecieved(Stack<double> valueStack, Stack<char> operationStack)
+        {
+            char oper = operationStack.Peek();
+
+            if (oper == '+' || oper == '-')
+                doMath(oper, valueStack, operationStack);
+            //check to see if a '(' is next if not and there is something on the stack throw an error
+
+            oper = operationStack.Peek();
+            if (oper == '(')
+                operationStack.Pop();
+            if (operationStack.Count > 0)
+            {
+                oper = operationStack.Peek();
+                if (oper == '*' || oper == '/')
+                    doMath(oper, valueStack, operationStack);
+
+            }
+
+        }
+        /// <summary>
+        /// Called if current token is a + or -.  Will check to see if the next item on operation stack is
+        /// a + or minus if it is it will perform that operation. if it is * or / then the operation will be pushed
+        /// on the stack
+        /// </summary>
+        ///  <param name="valueStack">the value stack</param>
+        /// <param name="operationStack">the operation stack</param>
+        /// <param name="p">the current token either a + or -</param>
+
+        private static void addSubRecieved(char p, Stack<double> valueStack, Stack<char> operationStack)
+        {
+
+            if (operationStack.Count == 0)
+            {
+                operationStack.Push(p);
+                return;
+            }
+            char oper = operationStack.Peek();
+            if (oper == '+' || oper == '-')
+                doMath(oper, valueStack, operationStack);
+
+            //operation is a *, /, (, or )
+            operationStack.Push(p);
+
+        }
+
+        /// <summary>
+        /// This helper method takes care of the math operation.  It will pop two values off the value stack and
+        /// will perform the operation it is given in the parameter and pop the operation stack.
+        /// </summary>
+        /// <param name="oper">the operation that needs to be performed +,-,/,*</param>
+        /// <param name="valueStack">the value stack</param>
+        /// <param name="operationStack">the operation stack</param>
+        private static void doMath(char oper, Stack<double> valueStack, Stack<char> operationStack)
+        {
+
+            double leftOp = valueStack.Pop();
+            double rightOp = valueStack.Pop();
+
+            //figure out which operation to perfom
+            if (oper == '+')
+            {
+                valueStack.Push(leftOp + rightOp);
+                operationStack.Pop();
+
+            }
+            else if (oper == '-')
+            {
+                valueStack.Push(rightOp - leftOp);
+                operationStack.Pop();
+            }
+            else if (oper == '*')
+            {
+                valueStack.Push(leftOp * rightOp);
+                operationStack.Pop();
+                return;
+            }
+            else if (oper == '/')
+            {
+                if (leftOp == 0)
+                    throw new ArgumentException("division by 0");
+
+                valueStack.Push(rightOp / leftOp);
+                operationStack.Pop();
+
+                return;
+            }
+
+        }
+        /// <summary>
+        /// Modified version of the Evaluate Function from PS1,  this method assumes
+        /// that formula is syntatically correct.  This method will throw an exception 
+        /// if divison by 0 Occurs
+        /// </summary>
+        /// <param name="tokens">the expressions</param>
+        /// <param name="lookup">a function that maps vairable to doubles</param>
+        /// <returns>the value of the expression passed</returns>
+        public static Double EvaluateDouble(IEnumerable<string> tokens, Func<string, double> lookup, IEnumerable<string> validVars)
+        {
+            Stack<double> valueStack = new Stack<double>();
+            Stack<char> operationStack = new Stack<char>();
+
+            //loop through the expression
+            foreach (string str in tokens)
+            {
+                //First check to see if the token is a number
+                double number;
+                if (double.TryParse(str, out number))
+
+                    doubleRecieved(number, valueStack, operationStack);
+
+                else
+                {
+                    try
+                    {
+                        if (str.isVariable())
+                        {
+                            double num = lookup(str);
+                            doubleRecieved(num, valueStack, operationStack);
+
+                        }
+                        //token mut be +,-,*,/,(,) 
+                        else
+                            ExpressionRecieved(str[0], valueStack, operationStack);
+                    }
+                    catch (Exception)
+                    {
+                        throw new ArgumentException(str + " Variable not found");
+                    }
+                }
+            }
+            // the entire expresion has been processed return value.
+            return DetermineAnswer(valueStack, operationStack);
+
+        }
+        /// <summary>
+        /// Called when the current token is a double. If a * or / is on top the operation
+        /// stack do the math else just push the number on the Value stack
+        /// </summary>
+        /// <param name="valueStack">the value stack</param>
+        /// <param name="operationStack">the operation stack</param>
+        /// <param name="number">the curent token being processed</param>
+        private static void doubleRecieved(double number, Stack<double> valueStack, Stack<char> operationStack)
+        {
+            //int num = (int)number;
+            valueStack.Push(number);
+            //no current operation push num
+            if (operationStack.Count == 0)
+                return;
+
+            char operation = operationStack.Peek();
+            //if * or / do the peroform the operation
+            if (operation == '*' || operation == '/')
+            {
+                doMath(operation, valueStack, operationStack);
+            }
+        }
+    }
+}

@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FormulaEvaluator</name>
+    </assembly>
+    <members>
+        <member name="T:FormulaEvaluator.Evaluator">
+            <summary>
+            This class takes a math expression as a string and evaluates the result.  Accetable 
+            math operations are numbers (doubles accetpted but will be converted to ints). 
+            +, /, * -, 9, (, ), are excepted.  This program will throw an argument exception if
+            expresion is not correct. This program also accepts var the start with a letter and end
+            with a number ie a1 is accetepable a1a is not. 
+            
+            Author  James Yeates
+            </summary>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.DetermineAnswer(System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            This helper method is called at the end after the expression has been parsed
+            and returns the final answer.  If the expression was not properly formatted 
+            an exception will be thrown
+            </summary>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+            <returns>the final answer as an double</returns>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.ExpressionRecieved(System.Char,System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            simple helper method that determines which math expression has been recieved 
+            and where it should go next
+            </summary>
+            <param name="expression">the current token</param>
+            <param name="valueStack">The value stack</param>
+            <param name="operationStack">the operation stack</param>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.RightParaenthesisRecieved(System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            helper method for  when/if a right paraenthesis is recieved
+            </summary>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.addSubRecieved(System.Char,System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            Called if current token is a + or -.  Will check to see if the next item on operation stack is
+            a + or minus if it is it will perform that operation. if it is * or / then the operation will be pushed
+            on the stack
+            </summary>
+             <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+            <param name="p">the current token either a + or -</param>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.doMath(System.Char,System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            This helper method takes care of the math operation.  It will pop two values off the value stack and
+            will perform the operation it is given in the parameter and pop the operation stack.
+            </summary>
+            <param name="oper">the operation that needs to be performed +,-,/,*</param>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.EvaluateDouble(System.Collections.Generic.IEnumerable{System.String},System.Func{System.String,System.Double},System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Modified version of the Evaluate Function from PS1,  this method assumes
+            that formula is syntatically correct.  This method will throw an exception 
+            if divison by 0 Occurs
+            </summary>
+            <param name="tokens">the expressions</param>
+            <param name="lookup">a function that maps vairable to doubles</param>
+            <returns>the value of the expression passed</returns>
+        </member>
+        <member name="M:FormulaEvaluator.Evaluator.doubleRecieved(System.Double,System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            Called when the current token is a double. If a * or / is on top the operation
+            stack do the math else just push the number on the Value stack
+            </summary>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+            <param name="number">the curent token being processed</param>
+        </member>
+        <member name="T:FormulaEvaluator.Evaluator.Lookup">
+             <summary>
+             Delegate, given a string value returns an int..
+            </summary>
+             <param name="v">string</param>
+             <returns>double</returns>
+        </member>
+        <member name="T:FormulaEvaluator.ExtensionMethods">
+            <summary>
+            these Extensions help when parsing tokens to see what they are ie variable, number etc
+            Author James Yeates
+            </summary>
+        </member>
+        <member name="M:FormulaEvaluator.ExtensionMethods.isVariable(System.String)">
+            <summary>
+            
+            determines whether the token is a valid variable starts with _ or letter
+            follwed by _ letters number or nothing
+            </summary>
+            <param name="str">token</param>
+            <returns>is a valid variable</returns>
+        </member>
+    </members>
+</doc>

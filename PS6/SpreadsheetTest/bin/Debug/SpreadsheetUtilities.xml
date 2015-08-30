@@ -1,0 +1,415 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SpreadsheetUtilities</name>
+    </assembly>
+    <members>
+        <!-- Badly formed XML comment ignored for member "T:SpreadsheetUtilities.DependencyGraph" -->
+        <member name="M:SpreadsheetUtilities.DependencyGraph.#ctor">
+            <summary>
+            Creates an empty DependencyGraph.
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.DependencyGraph.HasDependents(System.String)">
+            <summary>
+            Reports whether dependents(s) is non-empty.
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.DependencyGraph.HasDependees(System.String)">
+            <summary>
+            Reports whether dependees(s) is non-empty.
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.DependencyGraph.GetDependents(System.String)">
+            <summary>
+            Enumerates dependents(s).
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.DependencyGraph.GetDependees(System.String)">
+            <summary>
+            Enumerates dependees(s).
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.DependencyGraph.AddDependency(System.String,System.String)">
+            <summary>
+            Adds the ordered pair (s,t), if it doesn't exist
+            </summary>
+            <param name="s"></param>
+            <param name="t"></param>
+        </member>
+        <member name="M:SpreadsheetUtilities.DependencyGraph.RemoveDependency(System.String,System.String)">
+            <summary>
+            Removes the ordered pair (s,t), if it exists
+            </summary>
+            <param name="s"></param>
+            <param name="t"></param>
+        </member>
+        <member name="M:SpreadsheetUtilities.DependencyGraph.ReplaceDependents(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Removes all existing ordered pairs of the form (s,r).  Then, for each
+            t in newDependents, adds the ordered pair (s,t).
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.DependencyGraph.ReplaceDependees(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Removes all existing ordered pairs of the form (r,s).  Then, for each 
+            t in newDependees, adds the ordered pair (t,s).
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.DependencyGraph.AddToDependencyDicts(System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.Collections.Generic.HashSet{System.String}})">
+            <summary>
+            Helper method that is used to add given inputs to dependee and dependent dicts.
+            </summary>
+            <param name="s">key</param>
+            <param name="t"> value</param>
+            <param name="dict">dictonary to add key and value to </param>
+            <returns>1 if an item was added 0 if not</returns>
+        </member>
+        <member name="M:SpreadsheetUtilities.DependencyGraph.RemoveFromDependencyDic(System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.Collections.Generic.HashSet{System.String}})">
+            <summary>
+            This helper removes dependencies, was added to reduce code reuse
+            </summary>
+            <param name="s">key</param>
+            <param name="t">value</param>
+            <param name="dict">dictoinary</param>
+        </member>
+        <member name="P:SpreadsheetUtilities.DependencyGraph.Size">
+            <summary>
+            The number of ordered pairs in the DependencyGraph.
+            </summary>
+        </member>
+        <member name="P:SpreadsheetUtilities.DependencyGraph.Item(System.String)">
+            <summary>
+            The size of dependees(s).
+            This property is an example of an indexer.  If dg is a DependencyGraph, you would
+            invoke it like this:
+            dg["a"]
+            It should return the size of dependees("a")
+            </summary>
+        </member>
+        <member name="T:SpreadsheetUtilities.DoubleEvaluator">
+            <summary>
+            This class takes a math expression as a string and evaluates the result.  Accetable 
+            math operations are numbers (doubles accetpted but will be converted to ints). 
+            +, /, * -, 9, (, ), are excepted.  This program will throw an argument exception if
+            expresion is not correct. This program also accepts var the start with a letter and end
+            with a number ie a1 is accetepable a1a is not. 
+            
+            Author  James Yeates
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.DoubleEvaluator.DetermineAnswer(System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            This helper method is called at the end after the expression has been parsed
+            and returns the final answer.  If the expression was not properly formatted 
+            an exception will be thrown
+            </summary>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+            <returns>the final answer as an double</returns>
+        </member>
+        <member name="M:SpreadsheetUtilities.DoubleEvaluator.ExpressionRecieved(System.Char,System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            simple helper method that determines which math expression has been recieved 
+            and where it should go next
+            </summary>
+            <param name="expression">the current token</param>
+            <param name="valueStack">The value stack</param>
+            <param name="operationStack">the operation stack</param>
+        </member>
+        <member name="M:SpreadsheetUtilities.DoubleEvaluator.RightParaenthesisRecieved(System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            helper method for  when/if a right paraenthesis is recieved
+            </summary>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+        </member>
+        <member name="M:SpreadsheetUtilities.DoubleEvaluator.addSubRecieved(System.Char,System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            Called if current token is a + or -.  Will check to see if the next item on operation stack is
+            a + or minus if it is it will perform that operation. if it is * or / then the operation will be pushed
+            on the stack
+            </summary>
+             <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+            <param name="p">the current token either a + or -</param>
+        </member>
+        <member name="M:SpreadsheetUtilities.DoubleEvaluator.doMath(System.Char,System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            This helper method takes care of the math operation.  It will pop two values off the value stack and
+            will perform the operation it is given in the parameter and pop the operation stack.
+            </summary>
+            <param name="oper">the operation that needs to be performed +,-,/,*</param>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+        </member>
+        <member name="M:SpreadsheetUtilities.DoubleEvaluator.EvaluateDouble(System.Collections.Generic.IEnumerable{System.String},System.Func{System.String,System.Double},System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Modified version of the Evaluate Function from PS1,  this method assumes
+            that formula is syntatically correct.  This method will throw an exception 
+            if divison by 0 Occurs
+            </summary>
+            <param name="tokens">the expressions</param>
+            <param name="lookup">a function that maps vairable to doubles</param>
+            <returns>the value of the expression passed</returns>
+        </member>
+        <member name="M:SpreadsheetUtilities.DoubleEvaluator.doubleRecieved(System.Double,System.Collections.Generic.Stack{System.Double},System.Collections.Generic.Stack{System.Char})">
+            <summary>
+            Called when the current token is a double. If a * or / is on top the operation
+            stack do the math else just push the number on the Value stack
+            </summary>
+            <param name="valueStack">the value stack</param>
+            <param name="operationStack">the operation stack</param>
+            <param name="number">the curent token being processed</param>
+        </member>
+        <member name="T:SpreadsheetUtilities.DoubleEvaluator.Lookup">
+             <summary>
+             Delegate, given a string value returns an int..
+            </summary>
+             <param name="v">string</param>
+             <returns>double</returns>
+        </member>
+        <member name="T:SpreadsheetUtilities.ExtensionMethods">
+             <summary>
+             This class contains extensions to help determine what format a string is.  For eample is 
+             it a variable, number, letter, etc
+            Author James Yeates
+             </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.ExtensionMethods.isVariable(System.String)">
+            <summary>
+            
+            determines whether the token is a valid variable starts with _ or letter
+            follwed by _ letters number or nothing
+            </summary>
+            <param name="str">token</param>
+            <returns>is a valid variable</returns>
+        </member>
+        <member name="M:SpreadsheetUtilities.ExtensionMethods.isOpORLetter(System.String)">
+             <summary>
+             determine if this is a sing letter A -z or a (,),*,+,-/
+            </summary>
+             <param name="str">token</param>
+             <returns> is a single letter or valid operator</returns>
+        </member>
+        <member name="M:SpreadsheetUtilities.ExtensionMethods.isNumber(System.String)">
+            <summary>
+            Determine wheteher the token is a number
+            </summary>
+            <param name="str">token</param>
+            <returns>is token a number</returns>
+        </member>
+        <member name="M:SpreadsheetUtilities.ExtensionMethods.isParenthesis(System.Char)">
+            <summary>
+            is this a ( or ) -- true false
+            </summary>
+            <param name="c"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SpreadsheetUtilities.Formula">
+            <summary>
+            Represents formulas written in standard infix notation using standard precedence
+            rules.  The allowed symbols are non-negative numbers written using double-precision 
+            floating-point syntax; variables that consist of a letter or underscore followed by 
+            zero or more letters, underscores, or digits; parentheses; and the four operator 
+            symbols +, -, *, and /.  
+            
+            Spaces are significant only insofar that they delimit tokens.  For example, "xy" is
+            a single variable, "x y" consists of two variables "x" and y; "x23" is a single variable; 
+            and "x 23" consists of a variable "x" and a number "23".
+            
+            Associated with every formula are two delegates:  a normalizer and a validator.  The
+            normalizer is used to convert variables into a canonical form, and the validator is used
+            to add extra restrictions on the validity of a variable (beyond the standard requirement 
+            that it consist of a letter or underscore followed by zero or more letters, underscores,
+            or digits.)  Their use is described in detail in the constructor and method comments.
+            
+            Author James Yeates
+            </summary>
+        </member>
+        <member name="F:SpreadsheetUtilities.Formula.tokens">
+            <summary>
+            holds the tokens that make up the formula
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.#ctor(System.String)">
+            <summary>
+            Creates a Formula from a string that consists of an infix expression written as
+            described in the class comment.  If the expression is syntactically invalid,
+            throws a FormulaFormatException with an explanatory Message.
+            
+            The associated normalizer is the identity function, and the associated validator
+            maps every string to true.  
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.#ctor(System.String,System.Func{System.String,System.String},System.Func{System.String,System.Boolean})">
+            <summary>
+            Creates a Formula from a string that consists of an infix expression written as
+            described in the class comment.  If the expression is syntactically incorrect,
+            throws a FormulaFormatException with an explanatory Message.
+            
+            The associated normalizer and validator are the second and third parameters,
+            respectively.  
+            
+            If the formula contains a variable v such that normalize(v) is not a legal variable, 
+            throws a FormulaFormatException with an explanatory message. 
+            
+            If the formula contains a variable v such that isValid(normalize(v)) is false,
+            throws a FormulaFormatException with an explanatory message.
+            
+            Suppose that N is a method that converts all the letters in a string to upper case, and
+            that V is a method that returns true only if a string consists of one letter followed
+            by one digit.  Then:
+            
+            new Formula("x2+y3", N, V) should succeed
+            new Formula("x+y3", N, V) should throw an exception, since V(N("x")) is false
+            new Formula("2x+y3", N, V) should throw an exception, since "2x+y3" is syntactically incorrect.
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.Evaluate(System.Func{System.String,System.Double})">
+             <summary>
+             Evaluates this Formula, using the lookup delegate to determine the values of
+             variables.  When a variable symbol v needs to be determined, it should be looked up
+             via lookup(normalize(v)). (Here, normalize is the normalizer that was passed to 
+             the constructor.)
+             
+             For example, if L("x") is 2, L("X") is 4, and N is a method that converts all the letters 
+             in a string to upper case:
+             
+             new Formula("x+7", N, s => true).Evaluate(L) is 11
+             new Formula("x+7").Evaluate(L) is 9
+             
+             Given a variable symbol as its parameter, lookup returns the variable's value 
+             (if it has one) or throws an ArgumentException (otherwise).
+             
+             If no undefined variables or divisions by zero are encountered when evaluating 
+             this Formula, the value is returned.  Otherwise, a FormulaError is returned.  
+             The Reason property of the FormulaError should have a meaningful explanation.
+            
+             This method should never throw an exception.
+             </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.GetVariables">
+            <summary>
+            Enumerates the normalized versions of all of the variables that occur in this 
+            formula.  No normalization may appear more than once in the enumeration, even 
+            if it appears more than once in this Formula.
+            
+            For example, if N is a method that converts all the letters in a string to upper case:
+            
+            new Formula("x+y*z", N, s => true).GetVariables() should enumerate "X", "Y", and "Z"
+            new Formula("x+X*z", N, s => true).GetVariables() should enumerate "X" and "Z".
+            new Formula("x+X*z").GetVariables() should enumerate "x", "X", and "z".
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.ToString">
+            <summary>
+            Returns a string containing no spaces which, if passed to the Formula
+            constructor, will produce a Formula f such that this.Equals(f).  All of the
+            variables in the string should be normalized.
+            
+            For example, if N is a method that converts all the letters in a string to upper case:
+            
+            new Formula("x + y", N, s => true).ToString() should return "X+Y"
+            new Formula("x + Y").ToString() should return "x+Y"
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.Equals(System.Object)">
+            <summary>
+            If obj is null or obj is not a Formula, returns false.  Otherwise, reports
+            whether or not this Formula and obj are equal.
+            
+            Two Formulae are considered equal if they consist of the same tokens in the
+            same order.  To determine token equality, all tokens are compared as strings 
+            except for numeric tokens, which are compared as doubles, and variable tokens,
+            whose normalized forms are compared as strings.
+            
+            For example, if N is a method that converts all the letters in a string to upper case:
+             
+            new Formula("x1+y2", N, s => true).Equals(new Formula("X1  +  Y2")) is true
+            new Formula("x1+y2").Equals(new Formula("X1+Y2")) is false
+            new Formula("x1+y2").Equals(new Formula("y2+x1")) is false
+            new Formula("2.0 + x7").Equals(new Formula("2.000 + x7")) is true
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.op_Equality(SpreadsheetUtilities.Formula,SpreadsheetUtilities.Formula)">
+            <summary>
+            Reports whether f1 == f2, using the notion of equality from the Equals method.
+            Note that if both f1 and f2 are null, this method should return true.  If one is
+            null and one is not, this method should return false.
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.op_Inequality(SpreadsheetUtilities.Formula,SpreadsheetUtilities.Formula)">
+            <summary>
+            Reports whether f1 != f2, using the notion of equality from the Equals method.
+            Note that if both f1 and f2 are null, this method should return false.  If one is
+            null and one is not, this method should return true.
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.GetHashCode">
+            <summary>
+            Returns a hash code for this Formula.  If f1.Equals(f2), then it must be the
+            case that f1.GetHashCode() == f2.GetHashCode().  Ideally, the probability that two 
+            randomly-generated unequal Formulae have the same hash code should be extremely small.
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.GetTokens(System.String)">
+            <summary>
+            Given an expression, enumerates the tokens that compose it.  Tokens are left paren;
+            right paren; one of the four operator symbols; a string consisting of a letter or underscore
+            followed by zero or more letters, digits, or underscores; a double literal; and anything that doesn't
+            match one of those patterns.  There are no empty tokens, and no token contains white space.
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.IsCorrectFormula(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            This Method takes in a formula and determines if it has the correct syntax
+            will throw an Argument exception if formula is incorrect
+            </summary>
+            <param name="tokens">formula</param>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.checkLastToken(System.String,System.String)">
+            <summary>
+            This method keeps track of the last token recieved and compares it to the 
+            current token to help determin if the formula has correct syntax
+            </summary>
+            <param name="lastToken"></param>
+            <param name="currentToken"></param>
+        </member>
+        <member name="M:SpreadsheetUtilities.Formula.KeepTrackParen(System.Char,System.Int32@,System.Int32@)">
+            <summary>
+            This method checks to see that the number of parenthesis with in equation are equal
+            throws argument exception if needed.
+            </summary>
+            <param name="p">currenrt paren</param>
+            <param name="rightParen">number of right parens</param>
+            <param name="leftParen">number of left parens</param>
+        </member>
+        <member name="T:SpreadsheetUtilities.FormulaFormatException">
+            <summary>
+            Used to report syntactic errors in the argument to the Formula constructor.
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.FormulaFormatException.#ctor(System.String)">
+            <summary>
+            Constructs a FormulaFormatException containing the explanatory message.
+            </summary>
+        </member>
+        <member name="T:SpreadsheetUtilities.FormulaError">
+            <summary>
+            Used as a possible return value of the Formula.Evaluate method.
+            </summary>
+        </member>
+        <member name="M:SpreadsheetUtilities.FormulaError.#ctor(System.String)">
+            <summary>
+            Constructs a FormulaError containing the explanatory reason.
+            </summary>
+            <param name="reason"></param>
+        </member>
+        <member name="P:SpreadsheetUtilities.FormulaError.Reason">
+            <summary>
+             The reason why this FormulaError was created.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,17 @@
+\\chips.eng.utah.edu\home\yeates\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\bin\Debug\FormulaEvaluator.XML
+\\chips.eng.utah.edu\home\yeates\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\bin\Debug\FormulaEvaluator.dll
+\\chips.eng.utah.edu\home\yeates\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\bin\Debug\FormulaEvaluator.pdb
+\\chips.eng.utah.edu\home\yeates\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\obj\Debug\FormulaEvaluator.csprojResolveAssemblyReference.cache
+\\chips.eng.utah.edu\home\yeates\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\obj\Debug\FormulaEvaluator.dll
+\\chips.eng.utah.edu\home\yeates\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\obj\Debug\FormulaEvaluator.pdb
+X:\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\bin\Debug\FormulaEvaluator.XML
+X:\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\bin\Debug\FormulaEvaluator.dll
+X:\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\bin\Debug\FormulaEvaluator.pdb
+X:\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\obj\Debug\FormulaEvaluator.dll
+X:\.win_my_documents\Visual Studio 2013\Projects\PS1\FormulaEvaluator\obj\Debug\FormulaEvaluator.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS1\FormulaEvaluator\bin\Debug\FormulaEvaluator.XML
+C:\Users\yeates\Visual Studio 2013\Projects\PS1\FormulaEvaluator\bin\Debug\FormulaEvaluator.dll
+C:\Users\yeates\Visual Studio 2013\Projects\PS1\FormulaEvaluator\bin\Debug\FormulaEvaluator.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS1\FormulaEvaluator\obj\Debug\FormulaEvaluator.dll
+C:\Users\yeates\Visual Studio 2013\Projects\PS1\FormulaEvaluator\obj\Debug\FormulaEvaluator.pdb
+C:\Users\yeates\Visual Studio 2013\Projects\PS1\FormulaEvaluator\obj\Debug\FormulaEvaluator.csprojResolveAssemblyReference.cache
